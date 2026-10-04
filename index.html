@@ -116,7 +116,7 @@ input[type=range]{width:100%;accent-color:var(--brand2)}
 .paper li{margin:3px 0;font-size:13.5px}
 @media (min-width:700px){.g3{grid-template-columns:repeat(3,1fr)}.g4{grid-template-columns:repeat(4,1fr)}.g2{grid-template-columns:1fr 1fr}.tiles{grid-template-columns:repeat(3,1fr)}.hero{grid-template-columns:auto 1fr;padding:24px}}
 @media (min-width:1040px){
-  #app{display:grid;grid-template-columns:268px 1fr;min-height:100vh}
+  #app{display:grid;grid-template-columns:268px minmax(0,1fr);min-height:100vh}
   #side{display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow-y:auto;background:var(--card);border-right:1px solid var(--line);padding:0 0 14px}
   #bnav{display:none}#view{padding:6px 28px 40px}#crumbs{padding:14px 28px 0}
   #top{padding:12px 28px}.tiles{grid-template-columns:repeat(4,1fr)}
@@ -135,6 +135,10 @@ input[type=range]{width:100%;accent-color:var(--brand2)}
 @media print{#side,#bnav,#top,#crumbs,.noprint,#toast{display:none!important}body{background:#fff}#view{padding:0;max-width:none}.paper{box-shadow:none;border:0;margin:0}.card{box-shadow:none}#app{display:block}}
 
 @media (max-width:699px){#top .ttl span{display:none}#top .ttl b{font-size:15px}.hs{padding:4px 9px 4px 5px;font-size:12.5px}#top{gap:8px;padding:9px 12px}}
+
+#main{min-width:0}#view{min-width:0}.card,.kpi,.grid>*{min-width:0}
+
+.paper{overflow-x:auto}.paper table{display:block;overflow-x:auto;white-space:nowrap}
 
 </style>
 </head>
@@ -175,18 +179,18 @@ const dayLabel=k=>{const [y,m,d]=k.split('-').map(Number);const dt=new Date(y,m-
 const RN={Saleh:'Saleh (you)',Dhai:'Dhai',Abdullah:'Abdullah',Razan:'Razan','Vacant Prima':'Vacant · Prima','Vacant Non-Promoted':'Vacant · Non-Promoted','Vacant Ciproxen':'Vacant · Ciproxen','Vacant Azi-Once':'Vacant · Azi-Once'};
 const PN=n=>{n=String(n);const m=[[/ZORON 4.*Tablet|ZORON 4 MG TAB/i,'Zoron 4 Tab'],[/ZORON 8.*Tablet|ZORON 8 MG TAB/i,'Zoron 8 Tab'],[/ZORON Injection 4|ZORON 4 MG\/2ML/i,'Zoron 4 Inj'],[/ZORON Injection 8|ZORON 8 MG\/4ML/i,'Zoron 8 Inj'],[/MAXIM.*1X5|MAXIM 400 MG TAB 5/i,'Maxim 5s'],[/MAXIM.*1x7|MAXIM 400 MG TAB 7/i,'Maxim 7s'],[/MEVA 135/i,'Meva 135'],[/MEVA 200|MEVA SR/i,'Meva SR 200'],[/PALONOSETRON/i,'Palonosetron'],[/EMEDIUS/i,'Emedius']];for(const x of m)if(x[0].test(n))return x[1];return n.replace(/(\d),(\d{3})/g,'$1$2').replace(/\s+/g,' ').slice(0,28);};
 // ---------- state
-let S={done:{},log:{},notes:{},set:{real:100,w:{size:30,mom:15,opp:35,strat:20},lev:{},month:null},fc:{},fclog:[],fcsnap:[]};
+let S={done:{},log:{},notes:{},set:{real:100,w:{size:30,mom:15,opp:35,strat:20},lev:{},month:null},fc:{},fclog:[],fcsnap:[],dpin:{}};
 let READONLY=false,SHAREDATE='';
 let UI={ex:{dim:'line',f:{},q:''},hab:{line:'all',q:''},docs:{org:'all',site:'all',cls:'all',st:'all',q:''},acc:{f:'all',q:'',sort:'score'},cat:{line:'all',q:''},day:{mode:'visits'},stk:{org:'all'},fc:{bk:'all'},lev:{},tier:{},plan:{tab:'overview'}};
 const b64e=s=>btoa(unescape(encodeURIComponent(s))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
 const b64d=s=>decodeURIComponent(escape(atob(s.replace(/-/g,'+').replace(/_/g,'/'))));
-function encState(){const dn=[];D2.vis.forEach((v,i)=>{if(S.done[v.d+'|'+v.k])dn.push(i);});const lg={};for(const d in S.log){const a=[];for(const i in S.log[d])a.push(+i,S.log[d][i]);if(a.length)lg[d]=a;}return b64e(JSON.stringify({t:TODAY,dn,lg,set:S.set,fc:S.fc}));}
-function decState(s){const o=JSON.parse(b64d(s));const st={done:{},log:{},notes:{},set:o.set||S.set,fc:o.fc||{},fclog:[],fcsnap:[]};(o.dn||[]).forEach(i=>{const v=D2.vis[i];if(v)st.done[v.d+'|'+v.k]=1;});for(const d in (o.lg||{})){const a=o.lg[d];st.log[d]={};for(let j=0;j<a.length;j+=2)st.log[d][a[j]]=a[j+1];}return {st,t:o.t};}
+function encState(){const dn=[];D2.vis.forEach((v,i)=>{if(S.done[v.d+'|'+v.k])dn.push(i);});const lg={};for(const d in S.log){const a=[];for(const i in S.log[d])a.push(+i,S.log[d][i]);if(a.length)lg[d]=a;}return b64e(JSON.stringify({t:TODAY,dn,lg,set:S.set,fc:S.fc,dpin:S.dpin}));}
+function decState(s){const o=JSON.parse(b64d(s));const st={done:{},log:{},notes:{},set:o.set||S.set,fc:o.fc||{},fclog:[],fcsnap:[],dpin:o.dpin||{}};(o.dn||[]).forEach(i=>{const v=D2.vis[i];if(v)st.done[v.d+'|'+v.k]=1;});for(const d in (o.lg||{})){const a=o.lg[d];st.log[d]={};for(let j=0;j<a.length;j+=2)st.log[d][a[j]]=a[j+1];}return {st,t:o.t};}
 let docRef=null,saveT=null;
 function toast(m){const t=$('#toast');t.textContent=m||'Saved ✓';t.classList.add('on');clearTimeout(toast.t);toast.t=setTimeout(()=>t.classList.remove('on'),1300);}
-function loadLocal(){try{const s=JSON.parse(localStorage.getItem('sales_hq_v2')||localStorage.getItem('dallah_state')||'null');if(s&&s.done&&s.log){S.done=s.done;S.log=s.log;S.notes=s.notes||{};S.fc=s.fc||{};S.fclog=s.fclog||[];S.fcsnap=s.fcsnap||[];if(s.set)S.set={...S.set,...s.set,w:{...S.set.w,...(s.set.w||{})},lev:s.set.lev||{}};}}catch(e){}}
+function loadLocal(){try{const s=JSON.parse(localStorage.getItem('sales_hq_v2')||localStorage.getItem('dallah_state')||'null');if(s&&s.done&&s.log){S.done=s.done;S.log=s.log;S.notes=s.notes||{};S.fc=s.fc||{};S.fclog=s.fclog||[];S.fcsnap=s.fcsnap||[];S.dpin=s.dpin||{};if(s.set)S.set={...S.set,...s.set,w:{...S.set.w,...(s.set.w||{})},lev:s.set.lev||{}};}}catch(e){}}
 function save(){if(READONLY)return;try{localStorage.setItem('sales_hq_v2',JSON.stringify(S));}catch(e){}clearTimeout(saveT);saveT=setTimeout(async()=>{if(docRef){try{await docRef.set(S);toast('Saved ✓');}catch(e){toast('Saved on this device');}}else toast('Saved on this device');},450);}
-async function initDb(){if(READONLY||typeof claude==='undefined')return;try{const db=await claude.use('db');if(!db)return;docRef=db.doc('state/main');docRef.onSnapshot(s=>{if(s.exists){const r=s.data();if(r&&r.done&&r.log&&JSON.stringify(r)!==JSON.stringify(S)){S={done:r.done,log:r.log,notes:r.notes||{},set:{...S.set,...(r.set||{})},fc:r.fc||{},fclog:r.fclog||[],fcsnap:r.fcsnap||[]};render(true);}}},()=>{});}catch(e){docRef=null;}}
+async function initDb(){if(READONLY||typeof claude==='undefined')return;try{const db=await claude.use('db');if(!db)return;docRef=db.doc('state/main');docRef.onSnapshot(s=>{if(s.exists){const r=s.data();if(r&&r.done&&r.log&&JSON.stringify(r)!==JSON.stringify(S)){S={done:r.done,log:r.log,notes:r.notes||{},set:{...S.set,...(r.set||{})},fc:r.fc||{},fclog:r.fclog||[],fcsnap:r.fcsnap||[],dpin:r.dpin||{}};render(true);}}},()=>{});}catch(e){docRef=null;}}
 // ---------- months / days
 const MONTHS=[{k:'2026-10',n:'October',i:0},{k:'2026-11',n:'November',i:1},{k:'2026-12',n:'December',i:2}];
 function monthDays(k){const [y,m]=k.split('-').map(Number);const a=[];for(let d=new Date(y,m-1,1);d.getMonth()===m-1;d.setDate(d.getDate()+1)){if(d.getDay()<=4&&!(k==='2026-10'&&d.getDate()<4))a.push(dk(d));}return a;}
@@ -272,26 +276,44 @@ const WIDX={'Zoron 4 Tab':0,'Zoron 8 Tab':1,'Zoron 4 Inj':2,'Zoron 8 Inj':3,'Max
 const DOCP=['Zoron 4 Tab','Zoron 8 Tab','Zoron 4 Inj','Zoron 8 Inj','Maxim 5s','Maxim 7s','Meva SR 200','Meva 135'];
 function splitInt(total,w){const s=sum(w);if(!(total>0)||!(s>0))return w.map(()=>0);const raw=w.map(x=>total*x/s),fl=raw.map(Math.floor);let rem=Math.round(total)-sum(fl);const ord=raw.map((x,i)=>[x-fl[i],i]).sort((a,b)=>b[0]-a[0]);for(let k=0;k<rem;k++)fl[ord[k%ord.length][1]]++;return fl;}
 function docWeight(d,pn){const wt=(TERR.W[d.sp]||TERR.W.GP)[WIDX[pn]];return (wt||0)*(d.c==='A'?2:1);}
+function pinOf(r,d){const v=S.dpin&&S.dpin[r.a+'|'+r.pn+'|'+d.id];return v==null||v===''?null:Math.max(0,Math.round(Number(v)||0));}
+function allocRow(r,docs,Bm){
+  const B=Bm||r.e;const pins=docs.map(d=>pinOf(r,d));
+  const pinM=pins.map(p=>p==null?null:(r.tot>0?splitInt(p,r.e):[0,0,0]));
+  const parts=docs.map((d,j)=>({d,e:[0,0,0],pin:pins[j]}));const over=[0,0,0];
+  for(let i=0;i<3;i++){
+    const pinSum=sum(pinM.map(x=>x?x[i]:0));let rem=B[i]-pinSum;if(rem<0){over[i]=-rem;rem=0;}
+    const idx=docs.map((d,j)=>j).filter(j=>pins[j]==null);
+    let w=idx.map(j=>docWeight(docs[j],r.pn));if(!(sum(w)>0))w=idx.map(j=>docs[j].c==='A'?2:1);
+    const a=idx.length?splitInt(rem,w):[];idx.forEach((j,k)=>{parts[j].e[i]=a[k];});
+    pins.forEach((p,j)=>{if(p!=null)parts[j].e[i]=pinM[j][i];});}
+  return {parts,over};}
 function allocate(m){
-  m.docs.forEach(d=>{d.fcx={};d.fcm=[0,0,0];d.fcT=0;d.fcV=0;d.grp=null;});
-  const groups=[];const used=new Set();
+  m.docs.forEach(d=>{d.fcx={};d.fcxI={};d.fcm=[0,0,0];d.fcT=0;d.fcV=0;d.fcD=0;d.fcI=0;d.grp=null;d.byPlace={};});
+  const groups=[],places=[],used=new Set();
+  const addPart=(d,r,e,ind)=>{const tgt=ind?d.fcxI:d.fcx;const f=tgt[r.pn]=tgt[r.pn]||[0,0,0];const bp=d.byPlace[r.a]=d.byPlace[r.a]||{ind:!!ind,rows:{}};const g=bp.rows[r.pn]=bp.rows[r.pn]||[0,0,0];for(let i=0;i<3;i++){f[i]+=e[i];g[i]+=e[i];d.fcm[i]+=e[i];}const s=sum(e);d.fcT+=s;d.fcV+=s*r.price;if(ind)d.fcI+=s;else d.fcD+=s;};
   GROUPS.forEach(g=>{
     const docs=m.docs.filter(g.f);docs.forEach(d=>{d.grp=g.id;});
     const rows=FX.rows.filter(r=>g.acc.includes(r.a)&&r.tot>0&&WIDX[r.pn]!=null);
-    let tot=0,totV=0;
-    rows.forEach(r=>{for(let i=0;i<3;i++){const B=r.e[i];if(!(B>0)||!docs.length)continue;
-      let parts;
-      if(g.id==='dallah'){const sites={nak:docs.filter(d=>/nakheel/i.test(d.h)),nym:docs.filter(d=>!/nakheel/i.test(d.h))};
-        const tn=(D2.items.find(x=>x.place==='Nakheel'&&x.item===r.pn)||{t0:[0,0,0]}).t0[i],tm=(D2.items.find(x=>x.place==='Namar'&&x.item===r.pn)||{t0:[0,0,0]}).t0[i];
-        const sh=splitInt(B,[tn+tm>0?tn:sites.nak.length,tn+tm>0?tm:sites.nym.length]);
-        parts=[];[sites.nak,sites.nym].forEach((arr,k)=>{let w=arr.map(d=>docWeight(d,r.pn));if(!(sum(w)>0))w=arr.map(d=>d.c==='A'?2:1);const a=splitInt(sh[k],w);arr.forEach((d,j)=>parts.push([d,a[j]]));});}
-      else{let w=docs.map(d=>docWeight(d,r.pn));if(!(sum(w)>0))w=docs.map(d=>d.c==='A'?2:1);const a=splitInt(B,w);parts=docs.map((d,j)=>[d,a[j]]);}
-      parts.forEach(([d,b])=>{const f=d.fcx[r.pn]=d.fcx[r.pn]||[0,0,0];f[i]+=b;d.fcm[i]+=b;d.fcT+=b;d.fcV+=b*r.price;tot+=b;totV+=b*r.price;});}});
+    let tot=0,totV=0;const prow=[];
+    rows.forEach(r=>{let parts=[],over=[0,0,0];
+      if(!docs.length){prow.push({r,parts:[],over:[0,0,0]});return;}
+      if(g.id==='dallah'){const nak=docs.filter(d=>/nakheel/i.test(d.h)),nym=docs.filter(d=>!/nakheel/i.test(d.h));
+        const tn=(D2.items.find(x=>x.place==='Nakheel'&&x.item===r.pn)||{t0:[0,0,0]}).t0,tm=(D2.items.find(x=>x.place==='Namar'&&x.item===r.pn)||{t0:[0,0,0]}).t0;
+        const bn=[0,0,0],bm=[0,0,0];for(let i=0;i<3;i++){const s=splitInt(r.e[i],[tn[i]+tm[i]>0?tn[i]:nak.length,tn[i]+tm[i]>0?tm[i]:nym.length]);bn[i]=s[0];bm[i]=s[1];}
+        const A1=allocRow(r,nak,bn),A2=allocRow(r,nym,bm);parts=[...A1.parts,...A2.parts];over=[0,1,2].map(i=>A1.over[i]+A2.over[i]);}
+      else{const A=allocRow(r,docs,null);parts=A.parts;over=A.over;}
+      parts.forEach(p=>{addPart(p.d,r,p.e,false);tot+=sum(p.e);totV+=sum(p.e)*r.price;});
+      prow.push({r,parts,over});});
     g.acc.forEach(a=>used.add(a));
-    groups.push({...g,docs,rows,boxes:sum(rows.map(r=>r.tot)),alloc:tot,value:totV});});
+    groups.push({...g,docs,rows,boxes:sum(rows.map(r=>r.tot)),alloc:tot,value:totV});
+    g.acc.forEach(a=>places.push({acc:a,name:accNameById(a),direct:true,group:g.id,docs,prow,boxes:sum(rows.map(r=>r.tot)),orig:sum(FX.rows.filter(x=>x.a===a).map(x=>x.o0))}));});
+  const chAccs=[...new Set(FX.rows.filter(r=>!used.has(r.a)&&(r.tot>0||r.o0>0)).map(r=>r.a))];
+  chAccs.forEach(a=>{const rows=FX.rows.filter(r=>r.a===a&&r.tot>0&&WIDX[r.pn]!=null);const prow=[];
+    rows.forEach(r=>{const A=allocRow(r,m.docs,null);A.parts.forEach(p=>addPart(p.d,r,p.e,true));prow.push({r,parts:A.parts,over:A.over});});
+    places.push({acc:a,name:accNameById(a),direct:false,group:'indirect',docs:m.docs,prow,boxes:sum(rows.map(r=>r.tot)),orig:sum(FX.rows.filter(x=>x.a===a).map(x=>x.o0))});});
   const ch=FX.rows.filter(r=>!used.has(r.a)&&r.tot>0);
-  m.alloc={groups,channel:ch,channelBoxes:sum(ch.map(r=>r.tot)),totalBoxes:sum(FX.rows.map(r=>r.tot)),origBoxes:sum(FX.rows.map(r=>r.o0))};}
-
+  m.alloc={groups,places:places.sort((x,y)=>y.boxes-x.boxes),channel:ch,channelBoxes:sum(ch.map(r=>r.tot)),totalBoxes:sum(FX.rows.map(r=>r.tot)),origBoxes:sum(FX.rows.map(r=>r.o0)),directBoxes:sum(groups.map(g=>g.alloc)),indirectBoxes:sum(ch.filter(r=>WIDX[r.pn]!=null).map(r=>r.tot))};}
 function build(){
   applyFx();
   const real=S.set.real/100;
@@ -445,7 +467,7 @@ function buildHygiene(m){
 const ROUTES={};
 const NAV=[
  {g:'Overview',items:[['home','Home','🏠','Your position and next actions'],['menu','All sections','🧭','Pick anything']]},
- {g:'Plan & Forecast',items:[['plan','Plan to Achieve','🎯','Close the year: gap, scenarios, products'],['forecast','Forecast','📈','Commit / Best / Stretch in boxes'],['fedit','Forecast Editor','✏️','Edit your forecast in boxes'],['ideas','Ideas Lab','💡','Levers to close the gap']]},
+ {g:'Plan & Forecast',items:[['plan','Plan to Achieve','🎯','Close the year: gap, scenarios, products'],['forecast','Forecast','📈','Commit / Best / Stretch in boxes'],['board','Place Board','🧩','Every place with its doctors, editable'],['fedit','Forecast Editor','✏️','Edit all forecast rows in boxes'],['ideas','Ideas Lab','💡','Levers to close the gap']]},
  {g:'Accounts & People',items:[['accounts','Accounts','🏢','Tiering, health and plans'],['tiering','Account Tiering','🏷️','Where to spend your time'],['stakeholders','Stakeholders','🕸️','Influence vs engagement map'],['doctors','Doctors','🩺','All 160 territory doctors'],['docfc','Doctor Forecast','📦','Forecast boxes split by doctor'],['habib','Al Habib 360','🏨','Sell-in vs sell-out, drugs, doctors'],['dallah','Dallah 360','🏥','Hospital, entities, doctors']]},
  {g:'Analyze',items:[['explorer','Explorer','🔎','Slice sales by any dimension'],['catalog','Catalog','🗂️','Every drug: line, rep, sales'],['lines','Lines & Team','👥','Lines, reps, team ranking'],['compete','Competitive','⚔️','Line positioning and field notes'],['insights','Insights','🧠','Synthesized findings']]},
  {g:'Operate',items:[['daily','Daily','☑️','Visits and daily box log'],['health','Data Health','🩻','Data audit and fix list']]},
@@ -454,7 +476,7 @@ const FLAT=NAV.flatMap(g=>g.items.map(i=>({id:i[0],t:i[1],i:i[2],d:i[3],g:g.g}))
 const BN=[['home','Home','🏠'],['plan','Plan','🎯'],['accounts','Accounts','🏢'],['daily','Daily','☑️'],['menu','Menu','🧭']];
 function parse(){const h=location.hash.replace(/^#\/?/,'');const p=h.split('/').map(x=>{try{return decodeURIComponent(x)}catch(e){return x}});return {id:p[0]||'home',a:p.slice(1)};}
 function go(path){const n='#/'+path.split('/').map(encodeURIComponent).join('/');if(location.hash===n)render();else location.hash=n;}
-function crumbsFor(r){const f=FLAT.find(x=>x.id===r.id);const c=[['home','Home']];if(r.id!=='home'){if(f&&f.g!=='Overview')c.push([null,f.g]);c.push([r.a.length?r.id:null,f?f.t:r.id]);if(r.a.length)c.push([null,r.a[0].length>30?r.a[0].slice(0,30)+'…':r.a[0]]);}return c;}
+function crumbsFor(r){const f=FLAT.find(x=>x.id===r.id);const c=[['home','Home']];if(r.id!=='home'){if(f&&f.g!=='Overview')c.push([null,f.g]);c.push([r.a.length?r.id:null,f?f.t:r.id]);if(r.a.length){let nm=r.a[0];if((r.id==='board'||r.id==='account')&&ACCI[nm])nm=String(ACCI[nm].n).trim();if(r.id==='doctor'){const x=nm.split('|');nm=x[x.length-1];}c.push([null,nm.length>30?nm.slice(0,30)+'…':nm]);}}return c;}
 function renderChrome(r){
   const m=M(),h=m.health;
   $('#top').innerHTML=`<div class="logo">📊</div><div class="ttl"><b>Sales HQ · GIT 2</b><span>Riyadh · ${READONLY?'View-only snapshot · '+SHAREDATE:'Today '+dayLabel(TODAY).long}</span></div>
@@ -463,7 +485,7 @@ function renderChrome(r){
    <button class="ibtn" data-do="theme" aria-label="Theme">🌓</button>`;
   const sb=NAV.map(g=>`<div class="sb-g">${g.g}</div>`+g.items.filter(i=>i[0]!=='menu'||g.g==='Overview').map(i=>`<button class="sb-i ${i[0]===r.id?'on':''}" data-go="${i[0]}"><span class="ic">${i[2]}</span>${i[1]}</button>`).join('')).join('');
   $('#side').innerHTML=`<div class="sb-brand"><div class="logo">📊</div><div><b>Sales HQ</b><span>GIT 2 · Riyadh · FY2026</span></div></div><div class="sb-search" data-do="pal">🔍 Search anything<kbd>Ctrl K</kbd></div>${sb}<div class="sb-ft">Sales through Sep 2026 · Habib through Aug · Dallah stock 30 Sep · HQ tracker 4 Oct</div>`;
-  $('#bnav').innerHTML=BN.map(b=>`<button class="${(b[0]===r.id||(b[0]==='accounts'&&['tiering','stakeholders','doctors','docfc','habib','dallah'].includes(r.id))||(b[0]==='plan'&&['forecast','ideas'].includes(r.id))||(b[0]==='menu'&&!['home','plan','forecast','fedit','ideas','accounts','tiering','stakeholders','doctors','docfc','habib','dallah','daily'].includes(r.id)))?'on':''}" data-go="${b[0]}"><b>${b[2]}</b>${b[1]}</button>`).join('');
+  $('#bnav').innerHTML=BN.map(b=>`<button class="${(b[0]===r.id||(b[0]==='accounts'&&['tiering','stakeholders','doctors','docfc','habib','dallah'].includes(r.id))||(b[0]==='plan'&&['forecast','ideas'].includes(r.id))||(b[0]==='menu'&&!['home','plan','forecast','board','fedit','ideas','accounts','tiering','stakeholders','doctors','docfc','habib','dallah','daily'].includes(r.id)))?'on':''}" data-go="${b[0]}"><b>${b[2]}</b>${b[1]}</button>`).join('');
   $('#crumbs').innerHTML=r.id==='home'?'':crumbsFor(r).map((c,i,a)=>c[0]&&i<a.length-1?`<a data-go="${c[0]}">${esc(c[1])}</a>`:`<span>${esc(c[1])}</span>`).join(' <span>›</span> ');
 }
 function render(keep){
@@ -502,7 +524,7 @@ ROUTES.home=function(){
   if(watch.length)H+=`<div class="eyebrow">Accounts needing attention</div><div class="card">${watch.map(c=>`<div class="row" data-go="account/${c.id}" style="cursor:pointer"><div class="l"><b><bdi>${esc(c.n.trim())}</bdi></b><span>${c.flags.join(' · ')}</span></div>${pill('Tier '+c.tier,TIERN[c.tier][1])}<b>${Mn(c.fc)}</b></div>`).join('')}</div>`;
   return H;};
 function launcher(m){
-  const stats={plan:`Outlook ${p0(m.o)}`,forecast:`${bx(m.alloc.totalBoxes)} boxes`,fedit:`${S.fclog.length} edits`,docfc:`${m.alloc.groups.reduce((s,g)=>s+g.alloc,0)} boxes split`,ideas:`${m.levers.length} levers`,accounts:`${m.acc.length} accounts`,tiering:`${m.acc.filter(c=>c.tier===1).length} Tier 1`,stakeholders:`${m.docs.filter(d=>d.c==='A'&&d.act===0).length} A unseen`,doctors:`${m.docs.length} doctors`,habib:`Gap ${Mn(m.hAll.gap)}`,dallah:`${Mn(m.dal.y26)} YTD`,explorer:'7 dimensions',catalog:`${SALES.lines.length} lines`,lines:`${m.reps.length} reps`,compete:'3 molecules',insights:`${m.insights.length} findings`,daily:`${m.day.vDone}/${m.day.vTot} visits`,health:`${m.hygiene.list.filter(x=>x.sev==='High').length} high`,assets:'3 documents',sources:'6 files'};
+  const stats={plan:`Outlook ${p0(m.o)}`,forecast:`${bx(m.alloc.totalBoxes)} boxes`,board:`${m.alloc.places.length} places`,fedit:`${S.fclog.length} edits`,docfc:`${sum(m.docs.map(d=>d.fcT))} boxes split`,ideas:`${m.levers.length} levers`,accounts:`${m.acc.length} accounts`,tiering:`${m.acc.filter(c=>c.tier===1).length} Tier 1`,stakeholders:`${m.docs.filter(d=>d.c==='A'&&d.act===0).length} A unseen`,doctors:`${m.docs.length} doctors`,habib:`Gap ${Mn(m.hAll.gap)}`,dallah:`${Mn(m.dal.y26)} YTD`,explorer:'7 dimensions',catalog:`${SALES.lines.length} lines`,lines:`${m.reps.length} reps`,compete:'3 molecules',insights:`${m.insights.length} findings`,daily:`${m.day.vDone}/${m.day.vTot} visits`,health:`${m.hygiene.list.filter(x=>x.sev==='High').length} high`,assets:'3 documents',sources:'6 files'};
   return NAV.filter(g=>g.g!=='Overview').map(g=>`<div class="lab" style="margin:10px 2px 6px">${g.g}</div><div class="tiles">${g.items.map(i=>`<button class="tile" data-go="${i[0]}"><div class="bd">${i[2]}</div><b>${i[1]}</b><span>${i[3]}</span><span class="m">${stats[i[0]]||''}</span></button>`).join('')}</div>`).join('');}
 ROUTES.menu=function(){return pageHead('All sections','Everything in one place. Tap a tile or press Ctrl+K to search.')+launcher(M());};
 
@@ -656,9 +678,12 @@ ROUTES.doctors=function(){
 ROUTES.doctor=function(a){
   const m=M(),d=m.docs.find(x=>x.id===a[0]);if(!d)return pageHead('Doctor not found','')+`<div class="card"><button class="btn" data-go="doctors">Back</button></div>`;
   let H=pageHead(esc(d.n),`${esc(d.o)} · ${esc(d.s)} · ${esc(d.sp)}`,`<span class="badge ${d.c}" style="font-size:14px;padding:3px 10px">Class ${d.c}</span>`);
-  H+=`<div class="grid g4" style="margin-bottom:12px">${kpi(d.act+'/'+d.goal,'HQ visits',d.act>=d.goal?'ok':d.act===0?'bad':'warn',d.st)}${kpi(String(d.rem),'Remaining')}${kpi(Math.round(d.infN*100)+'','Influence score','',`${d.sp} · class ${d.c}`)}${kpi(d.fcT?bx(d.fcT)+' boxes':'—','Q4 forecast share (boxes)','',d.fcT?'SAR '+Mn(d.fcV):'')}</div>`;
+  H+=`<div class="grid g4" style="margin-bottom:12px">${kpi(d.act+'/'+d.goal,'HQ visits',d.act>=d.goal?'ok':d.act===0?'bad':'warn',d.st)}${kpi(String(d.rem),'Remaining')}${kpi(Math.round(d.infN*100)+'','Influence score','',`${d.sp} · class ${d.c}`)}${kpi(d.fcT?bx(d.fcT)+' boxes':'—','Q4 forecast share (boxes)','',d.fcT?bx(d.fcD)+' direct + '+bx(d.fcI)+' indirect':'')}</div>`;
   H+=`<div class="card"><h3>Visit plan</h3><div class="mt">Planned days: ${esc(d.days||'—')} · Priority ${esc(d.prio)} · ${d.vpc} VPC · LCF ${d.lcf} · RCF ${d.rcf}</div>`+(d.vkey?D2.vis.filter(v=>v.k===d.vkey).map(v=>`<div class="row"><button class="tick" data-do="tick" data-k="${esc(v.d+'|'+v.k)}" style="${S.done[v.d+'|'+v.k]?'background:var(--ok);border-color:var(--ok);color:#fff':''}">${S.done[v.d+'|'+v.k]?'✓':''}</button><div class="l"><b>${dayLabel(v.d).long}</b></div></div>`).join(''):'<div class="note">No visit scheduled this week.</div>')+'</div>';
-  if(d.fcT)H+=`<div class="card scroll"><h3>Q4 forecast split — boxes by product and month</h3><table class="t"><tr><th>Product</th><th>Oct</th><th>Nov</th><th>Dec</th><th>Q4 boxes</th></tr>`+Object.keys(d.fcx).filter(k=>sum(d.fcx[k])>0).map(k=>`<tr><td>${esc(k)}</td><td>${bx(d.fcx[k][0])}</td><td>${bx(d.fcx[k][1])}</td><td>${bx(d.fcx[k][2])}</td><td><b>${bx(sum(d.fcx[k]))}</b></td></tr>`).join('')+`<tr class="hl"><td><b>Total</b></td><td><b>${bx(d.fcm[0])}</b></td><td><b>${bx(d.fcm[1])}</b></td><td><b>${bx(d.fcm[2])}</b></td><td><b>${bx(d.fcT)}</b></td></tr></table><div class="note">The account's forecast is split among its doctors by specialty relevance and class (A = 2× B). It is an allocation, not prescription data. Edit the account forecast and this table updates.</div></div>`;
+  if(d.fcT){const ks=[...new Set([...Object.keys(d.fcx),...Object.keys(d.fcxI)])].filter(k=>sum(d.fcx[k]||[0])+sum(d.fcxI[k]||[0])>0);
+    H+=`<div class="card scroll"><h3>Q4 forecast share — boxes by product and month</h3><table class="t"><tr><th>Product</th><th>Direct</th><th>Indirect</th><th>Oct</th><th>Nov</th><th>Dec</th><th>Q4 total</th></tr>`+ks.map(k=>{const D=d.fcx[k]||[0,0,0],I=d.fcxI[k]||[0,0,0];return `<tr><td>${esc(k)}</td><td>${bx(sum(D))}</td><td>${bx(sum(I))}</td><td>${bx(D[0]+I[0])}</td><td>${bx(D[1]+I[1])}</td><td>${bx(D[2]+I[2])}</td><td><b>${bx(sum(D)+sum(I))}</b></td></tr>`;}).join('')+`<tr class="hl"><td><b>Total</b></td><td><b>${bx(d.fcD)}</b></td><td><b>${bx(d.fcI)}</b></td><td><b>${bx(d.fcm[0])}</b></td><td><b>${bx(d.fcm[1])}</b></td><td><b>${bx(d.fcm[2])}</b></td><td><b>${bx(d.fcT)}</b></td></tr></table><div class="note">Direct = the doctor's own hospital. Indirect = share of pharmacy/warehouse forecast. Both are allocations by specialty relevance and class (A = 2× B), not prescription data.</div></div>`;
+    const pl=Object.entries(d.byPlace).map(([a,o])=>({a,ind:o.ind,t:sum(Object.values(o.rows).map(x=>sum(x)))})).sort((x,y)=>y.t-x.t);
+    H+=`<div class="card scroll"><h3>Where these boxes come from</h3><table class="t"><tr><th>Place</th><th>Type</th><th>Boxes</th></tr>`+pl.slice(0,25).map(x=>`<tr class="row" data-go="board/${x.a}"><td><bdi>${esc(accNameById(x.a))}</bdi></td><td>${x.ind?'Indirect':'Direct'}</td><td><b>${bx(x.t)}</b></td></tr>`).join('')+`</table></div>`;}
   if(d.dal)H+=`<div class="card"><h3>Previous Dallah October box ask (before split)</h3><div class="chips">${['Z4','Z8','I4','I8','M5','M7','MV'].map((c,i)=>d.dal.m[i]?`<span class="tag">${c} ${d.dal.m[i]}</span>`:'').join('')}</div></div>`;
   H+=`<div class="card">${noteBox('doc:'+d.id,'Your notes','What does the doctor prescribe? Objections? Next step?')}</div>`;
   return H;};
@@ -859,7 +884,7 @@ ROUTES.sources=function(){
 
 // ---------- FORECAST EDITOR (boxes)
 UI.fx={acc:'all',prod:'all',q:'',zero:false};
-UI.dfc={g:'dallah'};
+UI.dfc={g:'all',q:''};
 const accNameById=id=>String((ACCI[id]||{n:id}).n).trim();
 function fxLogPush(k,i,a,b,kind){S.fclog.unshift({t:new Date().toISOString(),k,m:i,a,b,kind:kind||'edit'});if(S.fclog.length>400)S.fclog.length=400;}
 function fxSet(key,i,val){const r=FX.rows.find(x=>fxKey(x)===key);if(!r)return;const cur=fxEff(r);const nv=Math.max(0,Math.round(Number(val)||0));if(cur[i]===nv)return;const e=cur.slice();e[i]=nv;fxLogPush(key,i,cur[i],nv);const o=r.o.map(Math.round);if(e.every((x,k)=>x===o[k]))delete S.fc[key];else S.fc[key]=e;save();}
@@ -871,27 +896,13 @@ ROUTES.fedit=function(){
   const accs=SALES.cust.filter(c=>FX.rows.some(r=>r.a===c.id&&(r.o0>0||r.tot>0))).sort((a,b)=>b.fbT-a.fbT);
   const rows=FX.rows.filter(r=>(F.acc==='all'||r.a===F.acc)&&(F.prod==='all'||r.pn===F.prod)&&(F.zero||r.tot>0||r.o0>0)&&(!F.q||(accNameById(r.a)+' '+r.pn).toLowerCase().includes(F.q.toLowerCase()))).sort((a,b)=>b.tot-a.tot);
   const tb=m.alloc.totalBoxes,ob=m.alloc.origBoxes;
-  let H=pageHead('Forecast Editor','Edit your Q4 forecast in boxes by account, product and month. Every change is logged, and the whole dashboard (outlook, buckets, doctor split, daily targets) updates immediately.',`<span class="noprint"><button class="btn" data-go="assets" data-do="packgo">Open manager pack</button></span>`);
+  let H=pageHead('Forecast Editor','Edit your Q4 forecast in boxes by account, product and month. Every change is logged, and the whole dashboard (outlook, buckets, doctor split, daily targets) updates immediately.',`<span class="noprint"><button class="btn" data-go="board">Place Board</button> <button class="btn" data-go="assets" data-do="packgo">Manager pack</button></span>`);
   H+=`<div class="grid g4" style="margin-bottom:12px">${kpi(bx(tb),'Forecast now (boxes)',tb>=ob?'ok':'warn',`SAR ${Mn(T.fcQ4)}`)}${kpi(bx(ob),'Original forecast (boxes)','',`SAR ${Mn(sum(FX.rows.map(r=>r.o0*r.price)))}`)}${kpi((tb-ob>0?'+':'')+bx(tb-ob),'Change (boxes)',tb-ob===0?'':tb-ob>0?'ok':'bad',`SAR ${(T.fcQ4-sum(FX.rows.map(r=>r.o0*r.price)))>=0?'+':''}${Mn(T.fcQ4-sum(FX.rows.map(r=>r.o0*r.price)))}`)}${kpi(String(S.fclog.length),'Changes logged','',S.fclog.length?'Last: '+fxTime(S.fclog[0].t):'No edits yet')}${kpi(p0(m.o),'Year outlook now',m.o>=.95?'ok':'warn',`Risk-weighted ${p0(m.wo)}`)}</div>`;
   H+=`<div class="card"><h3>Quick tools</h3><div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><button class="btn sec" data-do="fxhair">Haircut Stretch ×0.5 and No-history ×0.3</button><span style="display:inline-flex;gap:6px;align-items:center"><input class="tx" id="fxpct" type="number" value="100" style="width:90px;margin:0" min="0"><button class="btn sec" data-do="fxscale">Scale shown rows by %</button></span><button class="btn ghost" data-do="fxresetall">Reset all to original</button></div><div class="note">"Scale shown rows" applies to the rows currently visible below (use the filters first).</div></div>`;
   H+=`<div class="card"><div class="grid g3"><div><div class="lab">Account</div><select class="tx" data-do="fxfilter" data-k="acc"><option value="all">All accounts</option>${accs.map(c=>`<option value="${c.id}" ${F.acc===c.id?'selected':''}>${esc(c.n.trim())} — ${bx(c.fbT)}</option>`).join('')}</select></div><div><div class="lab">Product</div><select class="tx" data-do="fxfilter" data-k="prod"><option value="all">All products</option>${prods.map(p=>`<option ${F.prod===p?'selected':''}>${p}</option>`).join('')}</select></div><div><div class="lab">Search</div><input class="tx" id="fxq" data-live="fx.q" placeholder="account or product" value="${esc(F.q)}"></div></div><label style="font-size:13px"><input type="checkbox" data-do="fxzero" ${F.zero?'checked':''}> Show rows that have no forecast yet (so you can add boxes)</label></div>`;
   H+=`<div class="card scroll"><table class="t"><tr><th>Account</th><th>Product</th><th>Price (SAR/box)</th><th>Oct</th><th>Nov</th><th>Dec</th><th>Q4 boxes</th><th>Original</th><th>Change</th><th>SAR</th><th></th></tr>`+rows.slice(0,150).map(r=>{const o=r.o0,t=r.tot;return `<tr><td><bdi>${esc(accNameById(r.a).slice(0,26))}</bdi></td><td>${esc(r.pn)}</td><td>${(+r.price).toFixed(2)}</td>`+[0,1,2].map(i=>`<td><input class="tx" style="width:84px;margin:0;text-align:right;${r.e[i]!==Math.round(r.o[i])?'border-color:var(--warn);background:var(--warnbg)':''}" type="number" inputmode="numeric" min="0" step="1" data-fxk="${esc(fxKey(r))}" data-fxi="${i}" value="${r.e[i]}" ${READONLY?'disabled':''}></td>`).join('')+`<td><b>${bx(t)}</b></td><td class="mt">${bx(o)}</td><td class="${t-o>0?'up':t-o<0?'dn':''}">${t===o?'—':(t-o>0?'+':'')+bx(t-o)}</td><td>${Mn(t*r.price)}</td><td>${t!==o?`<button class="btn ghost" style="padding:4px 9px;font-size:12px" data-do="fxreset" data-k="${esc(fxKey(r))}">Reset</button>`:''}</td></tr>`;}).join('')+`<tr class="hl"><td colspan="3"><b>Shown rows</b></td>${[0,1,2].map(i=>`<td><b>${bx(sum(rows.map(r=>r.e[i])))}</b></td>`).join('')}<td><b>${bx(sum(rows.map(r=>r.tot)))}</b></td><td>${bx(sum(rows.map(r=>r.o0)))}</td><td></td><td><b>${Mn(sum(rows.map(r=>r.tot*r.price)))}</b></td><td></td></tr></table><div class="note">${rows.length} rows${rows.length>150?' (first 150 shown — use the filters)':''}. Type a number and press Enter or leave the field. Edited cells are highlighted. Whole boxes only.</div><button class="btn sec block" data-do="fxcopy">Copy table for Excel / WhatsApp</button></div>`;
   H+=`<div class="eyebrow">Versions (show your manager how it evolved)</div><div class="card"><div style="display:flex;gap:8px;flex-wrap:wrap"><input class="tx" id="fxv" placeholder="Version name, e.g. After Habib call" style="flex:1;margin:0"><button class="btn" data-do="fxsnap">Save version</button></div>`+(S.fcsnap.length?S.fcsnap.map((s,i)=>`<div class="row"><div class="l"><b>${esc(s.name)}</b><span>${fxTime(s.t)} · ${bx(s.boxes)} boxes · SAR ${Mn(s.sar)} · ${s.edits} changes</span></div><button class="btn ghost" data-do="fxrestore" data-i="${i}" style="padding:6px 12px">Restore</button></div>`).join(''):'<div class="note">No saved versions yet.</div>')+`</div>`;
   H+=`<div class="eyebrow">Change log</div><div class="card scroll">`+(S.fclog.length?`<table class="t"><tr><th>When</th><th>Account · Product</th><th>Month</th><th>From</th><th>To</th></tr>`+S.fclog.slice(0,40).map(l=>{const [a,pn]=String(l.k).split('|');return `<tr><td>${fxTime(l.t)}</td><td><bdi>${esc(accNameById(a).slice(0,26))}</bdi> · ${esc(pn||'')}</td><td>${l.m>=0?MS[9+l.m]:'All (Q4)'}</td><td>${bx(l.a)}</td><td>${bx(l.b)}</td></tr>`;}).join('')+'</table>':'<div class="note">No edits yet. Every change you make is recorded here with its time.</div>')+`</div>`;
-  return H;};
-// ---------- DOCTOR FORECAST
-ROUTES.docfc=function(){
-  const m=M(),A=m.alloc,g=A.groups.find(x=>x.id===UI.dfc.g)||A.groups[0];
-  let H=pageHead('Doctor Forecast (boxes)','Your forecast boxes split across the doctors of each hospital, by drug and month. Totals always equal the account forecast.',`<span class="noprint"><button class="btn sec" data-go="fedit">Edit forecast</button></span>`);
-  const split=sum(A.groups.map(x=>x.alloc));
-  H+=`<div class="grid g4" style="margin-bottom:12px">${kpi(bx(A.totalBoxes),'Total Q4 forecast (boxes)')}${kpi(bx(split),'Split across doctors','ok',p0(split/A.totalBoxes)+' of forecast')}${kpi(bx(A.channelBoxes),'Pharmacy / warehouse channel','',`${A.channel.length?'no doctors attached':''}`)}${kpi(String(sum(A.groups.map(x=>x.docs.length))),'Doctors receiving boxes')}</div>`;
-  H+=`<div class="chips">${A.groups.filter(x=>x.boxes>0).map(x=>`<button class="chip ${x.id===g.id?'on':''}" data-do="ui" data-p="dfc.g" data-v="${x.id}">${esc(x.name.replace(/ \(.*/,''))} · ${bx(x.boxes)}</button>`).join('')}</div>`;
-  const docs=[...g.docs].sort((a,b)=>b.fcT-a.fcT);
-  H+=`<div class="card"><b>${esc(g.name)}</b> — account forecast <b>${bx(g.boxes)}</b> boxes · allocated <b>${bx(g.alloc)}</b> · ${g.alloc===g.boxes?'<span class="up">fully reconciled</span>':'<span class="dn">difference '+bx(g.boxes-g.alloc)+' (no doctors for some products)</span>'}</div>`;
-  const used=DOCP.filter(p=>docs.some(d=>(d.fcx[p]||[]).some(x=>x>0)));
-  H+=`<div class="card scroll"><table class="t"><tr><th>Doctor</th><th>Specialty</th><th>Class</th>${used.map(p=>`<th>${p}</th>`).join('')}<th>Oct</th><th>Nov</th><th>Dec</th><th>Q4 boxes</th></tr>`+docs.map(d=>`<tr class="row" data-go="doctor/${esc(d.id)}"><td>${esc(d.n)}</td><td>${esc(d.sp)}</td><td><span class="badge ${d.c}">${d.c}</span></td>${used.map(p=>`<td>${bx(sum(d.fcx[p]||[0]))}</td>`).join('')}<td>${bx(d.fcm[0])}</td><td>${bx(d.fcm[1])}</td><td>${bx(d.fcm[2])}</td><td><b>${bx(d.fcT)}</b></td></tr>`).join('')+`<tr class="hl"><td colspan="3"><b>Total</b></td>${used.map(p=>`<td><b>${bx(sum(docs.map(d=>sum(d.fcx[p]||[0]))))}</b></td>`).join('')}<td><b>${bx(sum(docs.map(d=>d.fcm[0])))}</b></td><td><b>${bx(sum(docs.map(d=>d.fcm[1])))}</b></td><td><b>${bx(sum(docs.map(d=>d.fcm[2])))}</b></td><td><b>${bx(g.alloc)}</b></td></tr></table><div class="note">Method: each account's boxes per drug and month are divided among its doctors by specialty relevance to that drug and class (A = 2× B), in whole boxes (largest-remainder rounding). For Dallah, boxes are first split Nakheel/Namar by consumption share. This is an allocation to guide visits, not prescription data.</div></div>`;
-  if(A.channel.length){const by={};A.channel.forEach(r=>{const o=by[r.a]=by[r.a]||{a:r.a,e:[0,0,0]};r.e.forEach((u,i)=>o.e[i]+=u);});
-    H+=`<div class="eyebrow">Forecast with no doctors attached (pharmacies, warehouses, companies)</div><div class="card scroll"><table class="t"><tr><th>Account</th><th>Oct</th><th>Nov</th><th>Dec</th><th>Q4 boxes</th></tr>`+Object.values(by).sort((a,b)=>sum(b.e)-sum(a.e)).map(o=>`<tr class="row" data-go="account/${o.a}"><td><bdi>${esc(accNameById(o.a))}</bdi></td><td>${bx(o.e[0])}</td><td>${bx(o.e[1])}</td><td>${bx(o.e[2])}</td><td><b>${bx(sum(o.e))}</b></td></tr>`).join('')+`<tr class="hl"><td><b>Total</b></td><td></td><td></td><td></td><td><b>${bx(A.channelBoxes)}</b></td></tr></table><div class="note">These accounts buy through the channel, so there is no doctor in your tracker to attach their boxes to.</div></div>`;}
   return H;};
 // ---------- MANAGER PACK (boxes)
 function assetPack(m){
@@ -901,7 +912,7 @@ function assetPack(m){
   const grp=A.groups.filter(g=>g.boxes>0);
   const html=`<div class="paper"><h2>Q4 Forecast Pack — boxes</h2><div style="color:#667">GIT 2 (Zoron · Maxim · Meva) · Riyadh · ${dayLabel(TODAY).long} · Prepared by Saleh Al-Shahri</div>
   <div class="k"><div><b>${bx(A.totalBoxes)}</b><span>Q4 forecast (boxes)</span></div><div><b>${Mn(T.fcQ4)}</b><span>Q4 value (SAR)</span></div><div><b>${bx(A.origBoxes)}</b><span>original upload (boxes)</span></div><div><b>${edits}</b><span>edits made${edits?' · last '+fxTime(S.fclog[0].t):''}</span></div></div>
-  <h4>By month</h4><table><tr><th></th><th>Oct</th><th>Nov</th><th>Dec</th><th>Q4</th></tr><tr><td>Boxes</td>${[0,1,2].map(i=>`<td>${bx(sum(byAcc.map(c=>c.fb[i])))}</td>`).join('')}<td><b>${bx(A.totalBoxes)}</b></td></tr><tr><td>SAR</td>${[0,1,2].map(i=>`<td>${Mn(sum(byAcc.map(c=>c.fcm[i])))}</td>`).join('')}<td><b>${Mn(T.fcQ4)}</b></td></tr></table>
+  <h4>How the boxes reach doctors</h4><p style="font-size:13px">${bx(A.directBoxes)} boxes go directly to the doctors of their hospital; ${bx(A.indirectBoxes)} boxes sell through pharmacies and warehouses and are spread across all ${m.docs.length} territory doctors as an indirect allocation.</p><h4>By month</h4><table><tr><th></th><th>Oct</th><th>Nov</th><th>Dec</th><th>Q4</th></tr><tr><td>Boxes</td>${[0,1,2].map(i=>`<td>${bx(sum(byAcc.map(c=>c.fb[i])))}</td>`).join('')}<td><b>${bx(A.totalBoxes)}</b></td></tr><tr><td>SAR</td>${[0,1,2].map(i=>`<td>${Mn(sum(byAcc.map(c=>c.fcm[i])))}</td>`).join('')}<td><b>${Mn(T.fcQ4)}</b></td></tr></table>
   <h4>By product</h4><table><tr><th>Product</th><th>Oct</th><th>Nov</th><th>Dec</th><th>Q4</th><th>Original</th><th>SAR</th></tr>${Object.entries(byp).filter(x=>sum(x[1].e)>0||x[1].o>0).sort((a,b)=>sum(b[1].e)-sum(a[1].e)).map(([k,o])=>`<tr><td>${esc(k)}</td><td>${bx(o.e[0])}</td><td>${bx(o.e[1])}</td><td>${bx(o.e[2])}</td><td><b>${bx(sum(o.e))}</b></td><td>${bx(o.o)}</td><td>${Mn(o.v)}</td></tr>`).join('')}</table>
   <h4>By account</h4><table><tr><th>Account</th><th>Oct</th><th>Nov</th><th>Dec</th><th>Q4</th><th>Original</th><th>SAR</th></tr>${byAcc.map(c=>`<tr><td>${esc(c.n.trim())}</td><td>${bx(c.fb[0])}</td><td>${bx(c.fb[1])}</td><td>${bx(c.fb[2])}</td><td><b>${bx(c.fbT)}</b></td><td>${bx(c.fb0)}</td><td>${Mn(c.fc)}</td></tr>`).join('')}</table>
   ${grp.map(g=>{const used=DOCP.filter(p=>g.docs.some(d=>(d.fcx[p]||[]).some(x=>x>0)));return `<h4>Doctor split — ${esc(g.name.replace(/ \(.*/,''))} (${bx(g.alloc)} boxes)</h4><table><tr><th>Doctor</th><th>Spec.</th><th>Cl.</th>${used.map(p=>`<th>${p.replace('Zoron','Z').replace('Maxim','M').replace('Meva','Mv')}</th>`).join('')}<th>Q4</th></tr>${[...g.docs].sort((a,b)=>b.fcT-a.fcT).filter(d=>d.fcT>0).map(d=>`<tr><td>${esc(d.n)}</td><td>${esc(d.sp)}</td><td>${d.c}</td>${used.map(p=>`<td>${bx(sum(d.fcx[p]||[0]))}</td>`).join('')}<td><b>${bx(d.fcT)}</b></td></tr>`).join('')}</table>`;}).join('')}
@@ -910,6 +921,53 @@ function assetPack(m){
   <div style="margin-top:12px;font-size:12px;color:#667">Method: forecast boxes per account × product × month from the Q4 forecast file, adjusted by the rep. Doctor split = allocation by specialty relevance and class (A = 2× B); it guides visit priorities and is not prescription data.</div></div>`;
   const text=`Q4 FORECAST PACK (boxes) — ${dayLabel(TODAY).long}\nTotal ${bx(A.totalBoxes)} boxes (original ${bx(A.origBoxes)}; ${edits} edits) = SAR ${Mn(T.fcQ4)}\nOct ${bx(sum(byAcc.map(c=>c.fb[0])))} · Nov ${bx(sum(byAcc.map(c=>c.fb[1])))} · Dec ${bx(sum(byAcc.map(c=>c.fb[2])))}\n`+Object.entries(byp).filter(x=>sum(x[1].e)>0).sort((a,b)=>sum(b[1].e)-sum(a[1].e)).map(([k,o])=>`- ${k}: ${bx(sum(o.e))} boxes`).join('\n')+'\nTop accounts:\n'+byAcc.slice(0,8).map(c=>`- ${c.n.trim()}: ${bx(c.fbT)} boxes`).join('\n');
   return {html,text};}
+
+// ---------- PLACE BOARD: each place (account) exactly as in the sheet, with its doctors
+UI.bd={f:'all',q:'',dq:'',dgrp:'all'};
+ROUTES.board=function(a){
+  const m=M(),A=m.alloc;
+  if(a[0])return boardPlace(a[0],m);
+  const F=UI.bd;
+  let H=pageHead('Place Board','Every place from your forecast sheet with its exact boxes, and under each place the doctors who share those boxes. Open a place to edit its numbers and each doctor\'s share.',`<span class="noprint"><button class="btn sec" data-go="fedit">All rows editor</button> <button class="btn sec" data-go="docfc">Doctor totals</button></span>`);
+  H+=`<div class="grid g4" style="margin-bottom:12px">${kpi(bx(A.totalBoxes),'Total forecast (boxes)','',`${A.places.length} places`)}${kpi(bx(A.directBoxes),'Direct to doctors (hospitals)','ok',p0(A.directBoxes/A.totalBoxes))}${kpi(bx(A.indirectBoxes),'Indirect (pharmacy / warehouse)','warn',p0(A.indirectBoxes/A.totalBoxes)+' split across all doctors')}${kpi(String(Object.keys(S.dpin).length),'Doctor numbers you set','',Object.keys(S.dpin).length?'pinned by you':'automatic split')}</div>`;
+  H+=chipsRow([['all','All places'],['direct','Hospitals (direct)'],['indirect','Pharmacy / warehouse'],['edited','Edited']],F.f,'bd.f')+searchBox('bq','bd.q','Search place');
+  const L=A.places.filter(p=>(F.f==='all'||(F.f==='direct'&&p.direct)||(F.f==='indirect'&&!p.direct)||(F.f==='edited'&&p.boxes!==p.orig))&&(!F.q||p.name.toLowerCase().includes(F.q.toLowerCase())));
+  H+=`<div class="note">${L.length} places · tap to open</div>`+L.map(p=>{const c=ACCI[p.acc]||{};const nd=p.direct?p.docs.length:m.docs.length;
+    return `<div class="card" data-go="board/${p.acc}" style="cursor:pointer"><div class="row" style="border:0;padding:0"><div class="l"><b><bdi>${esc(p.name)}</bdi></b><span>${p.direct?'Hospital · '+nd+' doctors share this directly':'Pharmacy / warehouse · split across all '+nd+' territory doctors (indirect)'}</span></div><div style="text-align:right"><b style="font-size:18px">${bx(p.boxes)}</b><div class="${p.boxes>p.orig?'up':p.boxes<p.orig?'dn':'mt'}" style="font-size:12px">${p.boxes===p.orig?'as in sheet':(p.boxes>p.orig?'+':'')+bx(p.boxes-p.orig)+' vs sheet'}</div></div></div><div class="chips" style="margin:8px 0 0">${p.prow.slice(0,6).map(x=>`<span class="tag">${esc(x.r.pn)} ${bx(x.r.tot)}</span>`).join('')}</div></div>`;}).join('');
+  return H;};
+function boardPlace(id,m){
+  const p=m.alloc.places.find(x=>x.acc===id);const c=ACCI[id];
+  if(!p||!c)return pageHead('Place not found','')+`<div class="card"><button class="btn" data-go="board">Back</button></div>`;
+  const rowsAll=FX.rows.filter(r=>r.a===id&&(r.tot>0||r.o0>0)).sort((a,b)=>b.tot-a.tot);
+  let H=pageHead(esc(p.name),p.direct?`Hospital forecast shared directly by ${p.docs.length} doctors`:'Pharmacy / warehouse forecast — split indirectly across all territory doctors',`<span class="noprint"><button class="btn sec" data-go="board">‹ All places</button> <button class="btn sec" data-go="account/${id}">Account page</button></span>`);
+  const tb=sum(rowsAll.map(r=>r.tot)),ob=sum(rowsAll.map(r=>r.o0));
+  H+=`<div class="grid g4" style="margin-bottom:12px">${kpi(bx(tb),'Q4 boxes (this place)',tb>=ob?'ok':'warn',`SAR ${Mn(sum(rowsAll.map(r=>r.tot*r.price)))}`)}${kpi(bx(ob),'As in your sheet')}${kpi(['Oct','Nov','Dec'].map((x,i)=>x+' '+bx(sum(rowsAll.map(r=>r.e[i])))).join(' · '),'By month','')}${kpi(String(p.direct?p.docs.length:m.docs.length),p.direct?'Doctors sharing':'Doctors in the pool')}</div>`;
+  // place numbers
+  H+=`<div class="eyebrow">1 · Forecast for this place (edit — same rows as your sheet)</div><div class="card scroll"><table class="t"><tr><th>Product</th><th>Price</th><th>Oct</th><th>Nov</th><th>Dec</th><th>Q4</th><th>Sheet</th><th>Change</th></tr>`+rowsAll.map(r=>`<tr><td>${esc(r.pn)}</td><td>${(+r.price).toFixed(2)}</td>`+[0,1,2].map(i=>`<td><input class="tx" style="width:84px;margin:0;text-align:right;${r.e[i]!==Math.round(r.o[i])?'border-color:var(--warn);background:var(--warnbg)':''}" type="number" inputmode="numeric" min="0" step="1" data-fxk="${esc(fxKey(r))}" data-fxi="${i}" value="${r.e[i]}" ${READONLY?'disabled':''}></td>`).join('')+`<td><b>${bx(r.tot)}</b></td><td class="mt">${bx(r.o0)}</td><td class="${r.tot>r.o0?'up':r.tot<r.o0?'dn':''}">${r.tot===r.o0?'—':(r.tot>r.o0?'+':'')+bx(r.tot-r.o0)}</td></tr>`).join('')+`<tr class="hl"><td colspan="2"><b>Total</b></td>${[0,1,2].map(i=>`<td><b>${bx(sum(rowsAll.map(r=>r.e[i])))}</b></td>`).join('')}<td><b>${bx(tb)}</b></td><td>${bx(ob)}</td><td></td></tr></table></div>`;
+  // doctors split
+  const prow=p.prow;const prods=prow.map(x=>x.r.pn);
+  const docs=p.direct?p.docs:[...m.docs];
+  const q=UI.bd.dq.toLowerCase();
+  const cellOf=(d,pn)=>{const x=prow.find(y=>y.r.pn===pn);if(!x)return null;const part=x.parts.find(z=>z.d.id===d.id);return part?{v:sum(part.e),pin:part.pin,r:x.r}:null;};
+  let list=docs.map(d=>({d,t:sum(prods.map(pn=>(cellOf(d,pn)||{v:0}).v))})).filter(x=>(!q||(x.d.n+x.d.sp+x.d.s).toLowerCase().includes(q))).sort((a,b)=>b.t-a.t);
+  const total=list.length;const shown=p.direct?list:list.slice(0,50);
+  H+=`<div class="eyebrow">2 · Split across doctors (boxes, Q4 by product)</div>`;
+  const over=sum(prow.map(x=>sum(x.over)));
+  H+=`<div class="card"><div class="note" style="margin:0 0 8px">${p.direct?'These doctors share the place\'s boxes. ':'This place sells through a pharmacy/warehouse, so its boxes are spread across every territory doctor by specialty and class. '}Type a number to <b>pin</b> a doctor's share — the other doctors automatically share what is left, so the total always equals the place. ${over?`<b class="dn">Pinned numbers exceed the place by ${bx(over)} boxes — lower a pin or raise the place.</b>`:''}</div><div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><input class="tx" id="bdq" data-live="bd.dq" placeholder="Search doctor / specialty / site" value="${esc(UI.bd.dq)}" style="flex:1;min-width:200px;margin:0"><button class="btn sec" data-do="resplit" data-id="${id}">Re-split automatically (clear my pins)</button></div></div>`;
+  H+=`<div class="card scroll"><table class="t"><tr><th>Doctor</th><th>Spec.</th><th>Class</th>${prods.map(pn=>`<th>${pn}</th>`).join('')}<th>Oct</th><th>Nov</th><th>Dec</th><th>Q4</th></tr>`+shown.map(({d,t})=>{const mo=[0,1,2].map(i=>sum(prow.map(x=>{const z=x.parts.find(y=>y.d.id===d.id);return z?z.e[i]:0;})));return `<tr><td><a data-go="doctor/${esc(d.id)}" style="cursor:pointer;color:var(--brand2)">${esc(d.n)}</a><div class="mt" style="font-size:11px">${esc(d.s)}</div></td><td>${esc(d.sp)}</td><td><span class="badge ${d.c}">${d.c}</span></td>${prods.map(pn=>{const z=cellOf(d,pn);if(!z)return '<td>—</td>';return `<td><input class="tx" style="width:70px;margin:0;text-align:right;${z.pin!=null?'border-color:var(--brand2);background:var(--chip)':''}" type="number" inputmode="numeric" min="0" step="1" data-dpk="${esc(z.r.a+'|'+pn+'|'+d.id)}" value="${z.v}" ${READONLY?'disabled':''}></td>`;}).join('')}<td>${bx(mo[0])}</td><td>${bx(mo[1])}</td><td>${bx(mo[2])}</td><td><b>${bx(t)}</b></td></tr>`;}).join('')+`<tr class="hl"><td colspan="3"><b>All doctors</b></td>${prods.map(pn=>`<td><b>${bx(sum(docs.map(d=>(cellOf(d,pn)||{v:0}).v)))}</b></td>`).join('')}${[0,1,2].map(i=>`<td><b>${bx(sum(prow.map(x=>sum(x.parts.map(z=>z.e[i])))))}</b></td>`).join('')}<td><b>${bx(sum(docs.map(d=>sum(prods.map(pn=>(cellOf(d,pn)||{v:0}).v)))))}</b></td></tr><tr><td colspan="3"><b>Place total (sheet)</b></td>${prods.map(pn=>`<td>${bx(prow.find(x=>x.r.pn===pn).r.tot)}</td>`).join('')}${[0,1,2].map(i=>`<td>${bx(sum(prow.map(x=>x.r.e[i])))}</td>`).join('')}<td><b>${bx(tb)}</b></td></tr></table><div class="note">${p.direct?'':'Showing the top 50 of '+total+' doctors (use search to find others). '}Blue cells are numbers you pinned. Months follow this place's monthly profile for each product.</div></div>`;
+  H+=`<div class="card">${noteBox('board:'+id,'Notes on this place','Who orders? Next order date? Any change to agree with the customer?')}</div>`;
+  return H;}
+// ---------- DOCTOR TOTALS (direct + indirect)
+ROUTES.docfc=function(){
+  const m=M(),A=m.alloc;const F=UI.dfc;
+  let H=pageHead('Doctor Forecast (boxes)','Each doctor\'s share of your forecast: direct boxes from their hospital plus indirect boxes from pharmacies and warehouses. Totals reconcile to the sheet.',`<span class="noprint"><button class="btn sec" data-go="board">Place Board</button> <button class="btn sec" data-go="fedit">Edit forecast</button></span>`);
+  const tot=sum(m.docs.map(d=>d.fcT)),dir=sum(m.docs.map(d=>d.fcD)),ind=sum(m.docs.map(d=>d.fcI));
+  H+=`<div class="grid g4" style="margin-bottom:12px">${kpi(bx(A.totalBoxes),'Forecast in your sheet (boxes)')}${kpi(bx(tot),'Split across doctors',tot===A.totalBoxes-(A.totalBoxes-A.directBoxes-A.indirectBoxes)?'ok':'',`${bx(dir)} direct + ${bx(ind)} indirect`)}${kpi(bx(A.totalBoxes-tot),'Not split (products without a doctor weight)',A.totalBoxes-tot===0?'ok':'warn')}${kpi(String(m.docs.filter(d=>d.fcT>0).length),'Doctors with boxes')}</div>`;
+  const groups=[['all','All doctors'],...A.groups.filter(g=>g.boxes>0).map(g=>[g.id,g.name.replace(/ \(.*/,'')]),['none','Indirect only']];
+  H+=chipsRow(groups,F.g==='dallah'&&!F.set?'all':F.g,'dfc.g')+searchBox('dq2','dfc.q','Search doctor, specialty or site');
+  const L=m.docs.filter(d=>(F.g==='all'||F.g==='none'&&!d.grp||d.grp===F.g)&&(!F.q||(d.n+d.sp+d.s).toLowerCase().includes(F.q.toLowerCase()))).sort((a,b)=>b.fcT-a.fcT);
+  H+=`<div class="note">${L.length} doctors</div><div class="card scroll"><table class="t"><tr><th>Doctor</th><th>Site</th><th>Specialty</th><th>Class</th><th>Direct</th><th>Indirect</th><th>Oct</th><th>Nov</th><th>Dec</th><th>Q4 total</th><th>SAR</th></tr>`+L.slice(0,200).map(d=>`<tr class="row" data-go="doctor/${esc(d.id)}"><td>${esc(d.n)}</td><td>${esc(d.o+' · '+d.s)}</td><td>${esc(d.sp)}</td><td><span class="badge ${d.c}">${d.c}</span></td><td>${bx(d.fcD)}</td><td>${bx(d.fcI)}</td><td>${bx(d.fcm[0])}</td><td>${bx(d.fcm[1])}</td><td>${bx(d.fcm[2])}</td><td><b>${bx(d.fcT)}</b></td><td>${Mn(d.fcV)}</td></tr>`).join('')+`<tr class="hl"><td colspan="4"><b>Total shown</b></td><td><b>${bx(sum(L.map(d=>d.fcD)))}</b></td><td><b>${bx(sum(L.map(d=>d.fcI)))}</b></td><td><b>${bx(sum(L.map(d=>d.fcm[0])))}</b></td><td><b>${bx(sum(L.map(d=>d.fcm[1])))}</b></td><td><b>${bx(sum(L.map(d=>d.fcm[2])))}</b></td><td><b>${bx(sum(L.map(d=>d.fcT)))}</b></td><td>${Mn(sum(L.map(d=>d.fcV)))}</td></tr></table><div class="note"><b>Direct</b> = boxes of the doctor's own hospital. <b>Indirect</b> = a share of pharmacy and warehouse forecast, spread by specialty relevance and class (A = 2× B). Open a place in the Place Board to pin or change any doctor's number.</div></div>`;
+  return H;};
 
 // ---------- actions
 const ACT={
@@ -926,6 +984,7 @@ const ACT={
  async copy(el){const t=document.getElementById(el.dataset.t).innerText;try{await navigator.clipboard.writeText(t);toast('Copied ✓');}catch(e){prompt('Copy',t);}},
  async copyText(el){try{await navigator.clipboard.writeText(el.dataset.t);toast('Copied ✓');}catch(e){prompt('Copy',el.dataset.t);}},
  print(){window.print();},
+ resplit(el){if(READONLY)return toast('View-only');const id=el.dataset.id;let n=0;Object.keys(S.dpin).forEach(k=>{if(k.startsWith(id+'|')){delete S.dpin[k];n++;}});save();render(true);toast(n?'Pins cleared ✓':'Already automatic');},
  packgo(){UI.asset={t:'pack',acc:M().acc[0].id};},
  fxacc(el){UI.fx.acc=el.dataset.id;UI.fx.prod='all';go('fedit');},
  fxfilter(el){UI.fx[el.dataset.k]=el.value;render(true);},
@@ -945,7 +1004,7 @@ const ACT={
  pal(){openPal();},
  adopt(){READONLY=false;history.replaceState(null,'',location.pathname+location.hash);save();initDb();render(true);},
  bkexp(){$('#bk').value=JSON.stringify(S);toast('Exported ✓');},
- bkimp(){try{const o=JSON.parse($('#bk').value);if(o&&o.done&&o.log){S={done:o.done,log:o.log,notes:o.notes||{},set:{...S.set,...(o.set||{})},fc:o.fc||{},fclog:o.fclog||[],fcsnap:o.fcsnap||[]};save();render(true);toast('Imported ✓');}else toast('Invalid text');}catch(e){toast('Invalid text');}},
+ bkimp(){try{const o=JSON.parse($('#bk').value);if(o&&o.done&&o.log){S={done:o.done,log:o.log,notes:o.notes||{},set:{...S.set,...(o.set||{})},fc:o.fc||{},fclog:o.fclog||[],fcsnap:o.fcsnap||[],dpin:o.dpin||{}};save();render(true);toast('Imported ✓');}else toast('Invalid text');}catch(e){toast('Invalid text');}},
  async share(){const u=location.href.split('#')[0].split('?')[0]+'?s='+encState();try{if(navigator.share){await navigator.share({title:'Sales HQ',url:u});return;}}catch(e){}try{await navigator.clipboard.writeText(u);toast('Link copied ✓');}catch(e){prompt('Copy link',u);}}
 };
 document.addEventListener('click',e=>{
@@ -955,12 +1014,13 @@ document.addEventListener('click',e=>{
   const g=e.target.closest('[data-go]');
   const a=e.target.closest('[data-do]');
   if(a&&a.dataset.do&&['INPUT','SELECT'].includes(a.tagName))return;
-  if(e.target.closest('[data-fxk]'))return;
+  if(e.target.closest('[data-fxk]')||e.target.closest('[data-dpk]'))return;
   if(a&&ACT[a.dataset.do]){if(g&&g.contains(a)&&g!==a){}ACT[a.dataset.do](a,e);if(!(g&&g===a)){return;}}
   if(g){e.preventDefault();go(g.dataset.go);}
 });
 document.addEventListener('change',e=>{
   const n=e.target.closest('[data-note]');if(n){if(READONLY){toast('View-only');return;}S.notes[n.dataset.note]=n.value;save();return;}
+  const dpk=e.target.closest('[data-dpk]');if(dpk){if(READONLY){toast('View-only');return;}const k=dpk.dataset.dpk;const v=dpk.value;if(v===''){delete S.dpin[k];}else S.dpin[k]=Math.max(0,Math.round(Number(v)||0));save();render(true);return;}
   const fxi=e.target.closest('[data-fxk]');if(fxi){if(READONLY){toast('View-only');return;}fxSet(fxi.dataset.fxk,+fxi.dataset.fxi,fxi.value);render(true);return;}
   const w=e.target.closest('[data-do=w]');if(w){S.set.w[w.dataset.k]=+w.value;save();render(true);return;}
   const sl=e.target.closest('select[data-do]');if(sl&&ACT[sl.dataset.do]){ACT[sl.dataset.do](sl);return;}
