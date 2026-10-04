@@ -7,7 +7,7 @@
 <meta name="theme-color" content="#0f2a47"><meta name="color-scheme" content="light dark">
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Sales HQ">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" media="print" onload="this.media='all'"><noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"></noscript>
 <title>Sales HQ · GIT 2 · 2026</title>
 <style>
 :root{--bg:#f4f6fa;--card:#fff;--ink:#0f1b2d;--mute:#64748b;--line:#e4e9f1;--brand:#0f2a47;--brand2:#1d6fb8;--acc:#0ea5a4;--ok:#16a34a;--okbg:#e7f6ec;--warn:#d97706;--warnbg:#fff3df;--bad:#dc2626;--badbg:#fdeaea;--chip:#edf3fb;--idle:#eef1f6;--shadow:0 1px 2px rgba(15,27,45,.05),0 6px 20px rgba(15,27,45,.05);--r:16px}
@@ -339,14 +339,14 @@ function build(){
   tierAccounts(m);
   m.dal=dallahCalc();
   // doctors
-  m.docs=buildDocs();allocate(m);
+  docsAlloc(m);
   m.terr={goal:sum(TERR.hosp.map(h=>h.goal)),act:sum(TERR.hosp.map(h=>h.act))};
-  m.levers=buildLevers(m);
   m.health=buildHealth(m);
-  m.actions=buildActions(m);
-  m.insights=buildInsights(m);
-  m.hygiene=buildHygiene(m);
+  const lazy=(k,f)=>{let v,done=false;Object.defineProperty(m,k,{get(){if(!done){v=f();done=true;}return v;},enumerable:true,configurable:true});};
+  lazy('levers',()=>buildLevers(m));lazy('actions',()=>buildActions(m));lazy('insights',()=>buildInsights(m));lazy('hygiene',()=>buildHygiene(m));
   return m;}
+let DOCCACHE={k:null,docs:null,alloc:null};
+function docsAlloc(m){const k=JSON.stringify([S.fc,S.dpin,Object.keys(S.done).join(',')]);if(DOCCACHE.k===k){m.docs=DOCCACHE.docs;m.alloc=DOCCACHE.alloc;return;}m.docs=buildDocs();allocate(m);DOCCACHE={k,docs:m.docs,alloc:m.alloc};}
 // ---------- tiering
 function tierAccounts(m){
   const w=S.set.w,W=w.size+w.mom+w.opp+w.strat||1;const acc=m.acc;
