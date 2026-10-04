@@ -63,8 +63,8 @@ table.t th:first-child,table.t td:first-child{text-align:left;white-space:normal
 table.t tr.row{cursor:pointer}table.t tr.row:hover td{background:var(--chip)}
 table.t tr.hl td{background:var(--chip)}
 .scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
-.row{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--line)}.row:last-child{border:0}
-.row .l{flex:1;min-width:0}.row .l b{display:block;font-size:14.5px}.row .l span{font-size:12.5px;color:var(--mute)}
+div.row{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--line)}div.row:last-child{border:0}
+div.row .l{flex:1;min-width:0}div.row .l b{display:block;font-size:14.5px}div.row .l span{font-size:12.5px;color:var(--mute)}
 .bar{height:7px;border-radius:9px;background:var(--idle);overflow:hidden;margin-top:6px}.bar i{display:block;height:100%;border-radius:9px;background:linear-gradient(90deg,var(--brand2),var(--acc))}
 .bar.ok i{background:var(--ok)}.bar.warn i{background:var(--warn)}.bar.bad i{background:var(--bad)}
 .note{font-size:12.5px;color:var(--mute);margin-top:8px}
@@ -140,6 +140,8 @@ input[type=range]{width:100%;accent-color:var(--brand2)}
 
 .paper{overflow-x:auto}.paper table{display:block;overflow-x:auto;white-space:nowrap}
 
+table.t th{position:static}.stickybar{position:sticky;top:calc(env(safe-area-inset-top,0px) + 58px);z-index:12;background:var(--card);border:2px solid var(--brand2);border-radius:14px;padding:10px 14px;margin-bottom:12px;box-shadow:0 6px 18px rgba(15,27,45,.12)}.sb2{display:flex;gap:18px;flex-wrap:wrap;align-items:center}.sb2 b{font-size:22px;display:block;line-height:1.1}.sb2 span{font-size:12px;color:var(--mute)}
+
 </style>
 </head>
 <body>
@@ -179,7 +181,7 @@ const dayLabel=k=>{const [y,m,d]=k.split('-').map(Number);const dt=new Date(y,m-
 const RN={Saleh:'Saleh (you)',Dhai:'Dhai',Abdullah:'Abdullah',Razan:'Razan','Vacant Prima':'Vacant · Prima','Vacant Non-Promoted':'Vacant · Non-Promoted','Vacant Ciproxen':'Vacant · Ciproxen','Vacant Azi-Once':'Vacant · Azi-Once'};
 const PN=n=>{n=String(n);const m=[[/ZORON 4.*Tablet|ZORON 4 MG TAB/i,'Zoron 4 Tab'],[/ZORON 8.*Tablet|ZORON 8 MG TAB/i,'Zoron 8 Tab'],[/ZORON Injection 4|ZORON 4 MG\/2ML/i,'Zoron 4 Inj'],[/ZORON Injection 8|ZORON 8 MG\/4ML/i,'Zoron 8 Inj'],[/MAXIM.*1X5|MAXIM 400 MG TAB 5/i,'Maxim 5s'],[/MAXIM.*1x7|MAXIM 400 MG TAB 7/i,'Maxim 7s'],[/MEVA 135/i,'Meva 135'],[/MEVA 200|MEVA SR/i,'Meva SR 200'],[/PALONOSETRON/i,'Palonosetron'],[/EMEDIUS/i,'Emedius']];for(const x of m)if(x[0].test(n))return x[1];return n.replace(/(\d),(\d{3})/g,'$1$2').replace(/\s+/g,' ').slice(0,28);};
 // ---------- state
-let S={done:{},log:{},notes:{},set:{real:100,w:{size:30,mom:15,opp:35,strat:20},lev:{},month:null},fc:{},fclog:[],fcsnap:[],dpin:{}};
+let S={done:{},log:{},notes:{},set:{real:100,w:{size:30,mom:15,opp:35,strat:20},lev:{},month:null},fc:{},fclog:[],fcsnap:[],dpin:{},manual:{}};
 let READONLY=false,SHAREDATE='';
 let UI={ex:{dim:'line',f:{},q:''},hab:{line:'all',q:''},docs:{org:'all',site:'all',cls:'all',st:'all',q:''},acc:{f:'all',q:'',sort:'score'},cat:{line:'all',q:''},day:{mode:'visits'},stk:{org:'all'},fc:{bk:'all'},lev:{},tier:{},plan:{tab:'overview'}};
 const b64e=s=>btoa(unescape(encodeURIComponent(s))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
@@ -188,9 +190,9 @@ function encState(){const dn=[];D2.vis.forEach((v,i)=>{if(S.done[v.d+'|'+v.k])dn
 function decState(s){const o=JSON.parse(b64d(s));const st={done:{},log:{},notes:{},set:o.set||S.set,fc:o.fc||{},fclog:[],fcsnap:[],dpin:o.dpin||{}};(o.dn||[]).forEach(i=>{const v=D2.vis[i];if(v)st.done[v.d+'|'+v.k]=1;});for(const d in (o.lg||{})){const a=o.lg[d];st.log[d]={};for(let j=0;j<a.length;j+=2)st.log[d][a[j]]=a[j+1];}return {st,t:o.t};}
 let docRef=null,saveT=null;
 function toast(m){const t=$('#toast');t.textContent=m||'Saved ✓';t.classList.add('on');clearTimeout(toast.t);toast.t=setTimeout(()=>t.classList.remove('on'),1300);}
-function loadLocal(){try{const s=JSON.parse(localStorage.getItem('sales_hq_v2')||localStorage.getItem('dallah_state')||'null');if(s&&s.done&&s.log){S.done=s.done;S.log=s.log;S.notes=s.notes||{};S.fc=s.fc||{};S.fclog=s.fclog||[];S.fcsnap=s.fcsnap||[];S.dpin=s.dpin||{};if(s.set)S.set={...S.set,...s.set,w:{...S.set.w,...(s.set.w||{})},lev:s.set.lev||{}};}}catch(e){}}
+function loadLocal(){try{const s=JSON.parse(localStorage.getItem('sales_hq_v2')||localStorage.getItem('dallah_state')||'null');if(s&&s.done&&s.log){S.done=s.done;S.log=s.log;S.notes=s.notes||{};S.fc=s.fc||{};S.fclog=s.fclog||[];S.fcsnap=s.fcsnap||[];S.dpin=s.dpin||{};S.manual=s.manual||{};if(s.set)S.set={...S.set,...s.set,w:{...S.set.w,...(s.set.w||{})},lev:s.set.lev||{}};}}catch(e){}}
 function save(){if(READONLY)return;try{localStorage.setItem('sales_hq_v2',JSON.stringify(S));}catch(e){}clearTimeout(saveT);saveT=setTimeout(async()=>{if(docRef){try{await docRef.set(S);toast('Saved ✓');}catch(e){toast('Saved on this device');}}else toast('Saved on this device');},450);}
-async function initDb(){if(READONLY||typeof claude==='undefined')return;try{const db=await claude.use('db');if(!db)return;docRef=db.doc('state/main');docRef.onSnapshot(s=>{if(s.exists){const r=s.data();if(r&&r.done&&r.log&&JSON.stringify(r)!==JSON.stringify(S)){S={done:r.done,log:r.log,notes:r.notes||{},set:{...S.set,...(r.set||{})},fc:r.fc||{},fclog:r.fclog||[],fcsnap:r.fcsnap||[],dpin:r.dpin||{}};render(true);}}},()=>{});}catch(e){docRef=null;}}
+async function initDb(){if(READONLY||typeof claude==='undefined')return;try{const db=await claude.use('db');if(!db)return;docRef=db.doc('state/main');docRef.onSnapshot(s=>{if(s.exists){const r=s.data();if(r&&r.done&&r.log&&JSON.stringify(r)!==JSON.stringify(S)){S={done:r.done,log:r.log,notes:r.notes||{},set:{...S.set,...(r.set||{})},fc:r.fc||{},fclog:r.fclog||[],fcsnap:r.fcsnap||[],dpin:r.dpin||{},manual:r.manual||{}};render(true);}}},()=>{});}catch(e){docRef=null;}}
 // ---------- months / days
 const MONTHS=[{k:'2026-10',n:'October',i:0},{k:'2026-11',n:'November',i:1},{k:'2026-12',n:'December',i:2}];
 function monthDays(k){const [y,m]=k.split('-').map(Number);const a=[];for(let d=new Date(y,m-1,1);d.getMonth()===m-1;d.setDate(d.getDate()+1)){if(d.getDay()<=4&&!(k==='2026-10'&&d.getDate()<4))a.push(dk(d));}return a;}
@@ -277,9 +279,10 @@ const DOCP=['Zoron 4 Tab','Zoron 8 Tab','Zoron 4 Inj','Zoron 8 Inj','Maxim 5s','
 function splitInt(total,w){const s=sum(w);if(!(total>0)||!(s>0))return w.map(()=>0);const raw=w.map(x=>total*x/s),fl=raw.map(Math.floor);let rem=Math.round(total)-sum(fl);const ord=raw.map((x,i)=>[x-fl[i],i]).sort((a,b)=>b[0]-a[0]);for(let k=0;k<rem;k++)fl[ord[k%ord.length][1]]++;return fl;}
 function docWeight(d,pn){const wt=(TERR.W[d.sp]||TERR.W.GP)[WIDX[pn]];return (wt||0)*(d.c==='A'?2:1);}
 function pinOf(r,d){const v=S.dpin&&S.dpin[r.a+'|'+r.pn+'|'+d.id];return v==null||v===''?null:Math.max(0,Math.round(Number(v)||0));}
-function allocRow(r,docs,Bm){
+function allocRow(r,docs,Bm,manual){
   const B=Bm||r.e;const pins=docs.map(d=>pinOf(r,d));
   const pinM=pins.map(p=>p==null?null:(r.tot>0?splitInt(p,r.e):[0,0,0]));
+  if(manual){const parts=docs.map((d,j)=>({d,e:pinM[j]?pinM[j].slice():[0,0,0],pin:pins[j]}));const over=[0,0,0],rem=[0,0,0];for(let i=0;i<3;i++){const s=sum(parts.map(x=>x.e[i]));rem[i]=B[i]-s;if(rem[i]<0)over[i]=-rem[i];}return {parts,over,rem};}
   const parts=docs.map((d,j)=>({d,e:[0,0,0],pin:pins[j]}));const over=[0,0,0];
   for(let i=0;i<3;i++){
     const pinSum=sum(pinM.map(x=>x?x[i]:0));let rem=B[i]-pinSum;if(rem<0){over[i]=-rem;rem=0;}
@@ -287,7 +290,7 @@ function allocRow(r,docs,Bm){
     let w=idx.map(j=>docWeight(docs[j],r.pn));if(!(sum(w)>0))w=idx.map(j=>docs[j].c==='A'?2:1);
     const a=idx.length?splitInt(rem,w):[];idx.forEach((j,k)=>{parts[j].e[i]=a[k];});
     pins.forEach((p,j)=>{if(p!=null)parts[j].e[i]=pinM[j][i];});}
-  return {parts,over};}
+  return {parts,over,rem:[0,0,0]};}
 function allocate(m){
   m.docs.forEach(d=>{d.fcx={};d.fcxI={};d.fcm=[0,0,0];d.fcT=0;d.fcV=0;d.fcD=0;d.fcI=0;d.grp=null;d.byPlace={};});
   const groups=[],places=[],used=new Set();
@@ -296,21 +299,21 @@ function allocate(m){
     const docs=m.docs.filter(g.f);docs.forEach(d=>{d.grp=g.id;});
     const rows=FX.rows.filter(r=>g.acc.includes(r.a)&&r.tot>0&&WIDX[r.pn]!=null);
     let tot=0,totV=0;const prow=[];
-    rows.forEach(r=>{let parts=[],over=[0,0,0];
-      if(!docs.length){prow.push({r,parts:[],over:[0,0,0]});return;}
+    rows.forEach(r=>{let parts=[],over=[0,0,0],rem=[0,0,0];
+      if(!docs.length){prow.push({r,parts:[],over:[0,0,0],rem:[0,0,0]});return;}
       if(g.id==='dallah'){const nak=docs.filter(d=>/nakheel/i.test(d.h)),nym=docs.filter(d=>!/nakheel/i.test(d.h));
         const tn=(D2.items.find(x=>x.place==='Nakheel'&&x.item===r.pn)||{t0:[0,0,0]}).t0,tm=(D2.items.find(x=>x.place==='Namar'&&x.item===r.pn)||{t0:[0,0,0]}).t0;
         const bn=[0,0,0],bm=[0,0,0];for(let i=0;i<3;i++){const s=splitInt(r.e[i],[tn[i]+tm[i]>0?tn[i]:nak.length,tn[i]+tm[i]>0?tm[i]:nym.length]);bn[i]=s[0];bm[i]=s[1];}
-        const A1=allocRow(r,nak,bn),A2=allocRow(r,nym,bm);parts=[...A1.parts,...A2.parts];over=[0,1,2].map(i=>A1.over[i]+A2.over[i]);}
-      else{const A=allocRow(r,docs,null);parts=A.parts;over=A.over;}
+        const mn=!!(S.manual&&S.manual[r.a]);const A1=allocRow(r,nak,bn,mn),A2=allocRow(r,nym,bm,mn);parts=[...A1.parts,...A2.parts];over=[0,1,2].map(i=>A1.over[i]+A2.over[i]);rem=[0,1,2].map(i=>A1.rem[i]+A2.rem[i]);}
+      else{const A=allocRow(r,docs,null,!!(S.manual&&S.manual[r.a]));parts=A.parts;over=A.over;rem=A.rem;}
       parts.forEach(p=>{addPart(p.d,r,p.e,false);tot+=sum(p.e);totV+=sum(p.e)*r.price;});
-      prow.push({r,parts,over});});
+      prow.push({r,parts,over,rem});});
     g.acc.forEach(a=>used.add(a));
     groups.push({...g,docs,rows,boxes:sum(rows.map(r=>r.tot)),alloc:tot,value:totV});
     g.acc.forEach(a=>places.push({acc:a,name:accNameById(a),direct:true,group:g.id,docs,prow,boxes:sum(rows.map(r=>r.tot)),orig:sum(FX.rows.filter(x=>x.a===a).map(x=>x.o0))}));});
   const chAccs=[...new Set(FX.rows.filter(r=>!used.has(r.a)&&(r.tot>0||r.o0>0)).map(r=>r.a))];
   chAccs.forEach(a=>{const rows=FX.rows.filter(r=>r.a===a&&r.tot>0&&WIDX[r.pn]!=null);const prow=[];
-    rows.forEach(r=>{const A=allocRow(r,m.docs,null);A.parts.forEach(p=>addPart(p.d,r,p.e,true));prow.push({r,parts:A.parts,over:A.over});});
+    rows.forEach(r=>{const A=allocRow(r,m.docs,null,!!(S.manual&&S.manual[r.a]));A.parts.forEach(p=>addPart(p.d,r,p.e,true));prow.push({r,parts:A.parts,over:A.over,rem:A.rem});});
     places.push({acc:a,name:accNameById(a),direct:false,group:'indirect',docs:m.docs,prow,boxes:sum(rows.map(r=>r.tot)),orig:sum(FX.rows.filter(x=>x.a===a).map(x=>x.o0))});});
   const ch=FX.rows.filter(r=>!used.has(r.a)&&r.tot>0);
   m.alloc={groups,places:places.sort((x,y)=>y.boxes-x.boxes),channel:ch,channelBoxes:sum(ch.map(r=>r.tot)),totalBoxes:sum(FX.rows.map(r=>r.tot)),origBoxes:sum(FX.rows.map(r=>r.o0)),directBoxes:sum(groups.map(g=>g.alloc)),indirectBoxes:sum(ch.filter(r=>WIDX[r.pn]!=null).map(r=>r.tot))};}
@@ -346,7 +349,7 @@ function build(){
   lazy('levers',()=>buildLevers(m));lazy('actions',()=>buildActions(m));lazy('insights',()=>buildInsights(m));lazy('hygiene',()=>buildHygiene(m));
   return m;}
 let DOCCACHE={k:null,docs:null,alloc:null};
-function docsAlloc(m){const k=JSON.stringify([S.fc,S.dpin,Object.keys(S.done).join(',')]);if(DOCCACHE.k===k){m.docs=DOCCACHE.docs;m.alloc=DOCCACHE.alloc;return;}m.docs=buildDocs();allocate(m);DOCCACHE={k,docs:m.docs,alloc:m.alloc};}
+function docsAlloc(m){const k=JSON.stringify([S.fc,S.dpin,S.manual,Object.keys(S.done).join(',')]);if(DOCCACHE.k===k){m.docs=DOCCACHE.docs;m.alloc=DOCCACHE.alloc;return;}m.docs=buildDocs();allocate(m);DOCCACHE={k,docs:m.docs,alloc:m.alloc};}
 // ---------- tiering
 function tierAccounts(m){
   const w=S.set.w,W=w.size+w.mom+w.opp+w.strat||1;const acc=m.acc;
@@ -951,10 +954,13 @@ function boardPlace(id,m){
   const cellOf=(d,pn)=>{const x=prow.find(y=>y.r.pn===pn);if(!x)return null;const part=x.parts.find(z=>z.d.id===d.id);return part?{v:sum(part.e),pin:part.pin,r:x.r}:null;};
   let list=docs.map(d=>({d,t:sum(prods.map(pn=>(cellOf(d,pn)||{v:0}).v))})).filter(x=>(!q||(x.d.n+x.d.sp+x.d.s).toLowerCase().includes(q))).sort((a,b)=>b.t-a.t);
   const total=list.length;const shown=p.direct?list:list.slice(0,50);
+  const manual=!!S.manual[id];
+  const asg=prow.map(x=>({pn:x.r.pn,tot:x.r.tot,a:sum(x.parts.map(z=>sum(z.e)))}));
+  const TT=sum(asg.map(x=>x.tot)),AA=sum(asg.map(x=>x.a)),RR=TT-AA;
   H+=`<div class="eyebrow">2 · Split across doctors (boxes, Q4 by product)</div>`;
-  const over=sum(prow.map(x=>sum(x.over)));
-  H+=`<div class="card"><div class="note" style="margin:0 0 8px">${p.direct?'These doctors share the place\'s boxes. ':'This place sells through a pharmacy/warehouse, so its boxes are spread across every territory doctor by specialty and class. '}Type a number to <b>pin</b> a doctor's share — the other doctors automatically share what is left, so the total always equals the place. ${over?`<b class="dn">Pinned numbers exceed the place by ${bx(over)} boxes — lower a pin or raise the place.</b>`:''}</div><div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><input class="tx" id="bdq" data-live="bd.dq" placeholder="Search doctor / specialty / site" value="${esc(UI.bd.dq)}" style="flex:1;min-width:200px;margin:0"><button class="btn sec" data-do="resplit" data-id="${id}">Re-split automatically (clear my pins)</button></div></div>`;
-  H+=`<div class="card scroll"><table class="t"><tr><th>Doctor</th><th>Spec.</th><th>Class</th>${prods.map(pn=>`<th>${pn}</th>`).join('')}<th>Oct</th><th>Nov</th><th>Dec</th><th>Q4</th></tr>`+shown.map(({d,t})=>{const mo=[0,1,2].map(i=>sum(prow.map(x=>{const z=x.parts.find(y=>y.d.id===d.id);return z?z.e[i]:0;})));return `<tr><td><a data-go="doctor/${esc(d.id)}" style="cursor:pointer;color:var(--brand2)">${esc(d.n)}</a><div class="mt" style="font-size:11px">${esc(d.s)}</div></td><td>${esc(d.sp)}</td><td><span class="badge ${d.c}">${d.c}</span></td>${prods.map(pn=>{const z=cellOf(d,pn);if(!z)return '<td>—</td>';return `<td><input class="tx" style="width:70px;margin:0;text-align:right;${z.pin!=null?'border-color:var(--brand2);background:var(--chip)':''}" type="number" inputmode="numeric" min="0" step="1" data-dpk="${esc(z.r.a+'|'+pn+'|'+d.id)}" value="${z.v}" ${READONLY?'disabled':''}></td>`;}).join('')}<td>${bx(mo[0])}</td><td>${bx(mo[1])}</td><td>${bx(mo[2])}</td><td><b>${bx(t)}</b></td></tr>`;}).join('')+`<tr class="hl"><td colspan="3"><b>All doctors</b></td>${prods.map(pn=>`<td><b>${bx(sum(docs.map(d=>(cellOf(d,pn)||{v:0}).v)))}</b></td>`).join('')}${[0,1,2].map(i=>`<td><b>${bx(sum(prow.map(x=>sum(x.parts.map(z=>z.e[i])))))}</b></td>`).join('')}<td><b>${bx(sum(docs.map(d=>sum(prods.map(pn=>(cellOf(d,pn)||{v:0}).v)))))}</b></td></tr><tr><td colspan="3"><b>Place total (sheet)</b></td>${prods.map(pn=>`<td>${bx(prow.find(x=>x.r.pn===pn).r.tot)}</td>`).join('')}${[0,1,2].map(i=>`<td>${bx(sum(prow.map(x=>x.r.e[i])))}</td>`).join('')}<td><b>${bx(tb)}</b></td></tr></table><div class="note">${p.direct?'':'Showing the top 50 of '+total+' doctors (use search to find others). '}Blue cells are numbers you pinned. Months follow this place's monthly profile for each product.</div></div>`;
+  H+=`<div class="stickybar"><div class="sb2"><div><b>${bx(TT)}</b><span>PLACE TOTAL (boxes)</span></div><div><b>${bx(AA)}</b><span>Assigned to doctors</span></div><div><b style="color:var(--${RR===0?'ok':RR>0?'warn':'bad'})">${bx(Math.abs(RR))}</b><span>${RR===0?'Balanced ✓':RR>0?'Remaining to assign':'Over-assigned'}</span></div><div style="flex:1;min-width:200px">${asg.map(x=>`<span class="tag" style="background:var(--${x.tot===x.a?'okbg':x.a<x.tot?'warnbg':'badbg'});color:var(--${x.tot===x.a?'ok':x.a<x.tot?'warn':'bad'})">${esc(x.pn)}: ${bx(x.a)}/${bx(x.tot)}</span>`).join('')}</div></div></div>`;
+  H+=`<div class="card"><div class="note" style="margin:0 0 8px">${manual?'<b>Manual mode:</b> every number is yours. The bar above shows how many boxes of the place total are still unassigned (or over-assigned). Make each product reach its total.':(p.direct?'These doctors share the place\'s boxes. ':'This place sells through a pharmacy/warehouse, so its boxes are spread across every territory doctor by specialty and class. ')+'Type a number to <b>pin</b> a doctor\'s share; the other doctors automatically share what is left, so the total always equals the place.'}</div><div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><input class="tx" id="bdq" data-live="bd.dq" placeholder="Search doctor / specialty / site" value="${esc(UI.bd.dq)}" style="flex:1;min-width:200px;margin:0"><button class="btn ${manual?'':'sec'}" data-do="manualtoggle" data-id="${id}">${manual?'✓ Manual mode (tap to go back to auto)':'Switch to manual split'}</button>${manual?`<button class="btn sec" data-do="fillrem" data-id="${id}">Auto-fill what is left</button>`:''}<button class="btn ghost" data-do="resplit" data-id="${id}">Re-split automatically</button></div></div>`;
+  H+=`<div class="card scroll"><table class="t"><tr><th>Doctor</th><th>Spec.</th><th>Class</th>${prods.map(pn=>`<th>${pn}</th>`).join('')}<th>Oct</th><th>Nov</th><th>Dec</th><th>Q4</th></tr>`+shown.map(({d,t})=>{const mo=[0,1,2].map(i=>sum(prow.map(x=>{const z=x.parts.find(y=>y.d.id===d.id);return z?z.e[i]:0;})));return `<tr><td><a data-go="doctor/${esc(d.id)}" style="cursor:pointer;color:var(--brand2)">${esc(d.n)}</a><div class="mt" style="font-size:11px">${esc(d.s)}</div></td><td>${esc(d.sp)}</td><td><span class="badge ${d.c}">${d.c}</span></td>${prods.map(pn=>{const z=cellOf(d,pn);if(!z)return '<td>—</td>';return `<td><input class="tx" style="width:70px;margin:0;text-align:right;${z.pin!=null?'border-color:var(--brand2);background:var(--chip)':''}" type="number" inputmode="numeric" min="0" step="1" data-dpk="${esc(z.r.a+'|'+pn+'|'+d.id)}" value="${z.v}" ${READONLY?'disabled':''}></td>`;}).join('')}<td>${bx(mo[0])}</td><td>${bx(mo[1])}</td><td>${bx(mo[2])}</td><td><b>${bx(t)}</b></td></tr>`;}).join('')+`<tr class="hl"><td colspan="3"><b>All doctors</b></td>${prods.map(pn=>`<td><b>${bx(sum(docs.map(d=>(cellOf(d,pn)||{v:0}).v)))}</b></td>`).join('')}${[0,1,2].map(i=>`<td><b>${bx(sum(prow.map(x=>sum(x.parts.map(z=>z.e[i])))))}</b></td>`).join('')}<td><b>${bx(sum(docs.map(d=>sum(prods.map(pn=>(cellOf(d,pn)||{v:0}).v)))))}</b></td></tr><tr><td colspan="3"><b>Place total (sheet)</b></td>${prods.map(pn=>`<td>${bx(prow.find(x=>x.r.pn===pn).r.tot)}</td>`).join('')}${[0,1,2].map(i=>`<td>${bx(sum(prow.map(x=>x.r.e[i])))}</td>`).join('')}<td><b>${bx(tb)}</b></td></tr><tr><td colspan="3"><b>Remaining to assign</b></td>${prods.map(pn=>{const x=prow.find(y=>y.r.pn===pn);const rm=x.r.tot-sum(x.parts.map(z=>sum(z.e)));return `<td class="${rm===0?'up':rm>0?'':'dn'}"><b>${rm===0?'✓':bx(rm)}</b></td>`;}).join('')}<td></td><td></td><td></td><td class="${RR===0?'up':'dn'}"><b>${RR===0?'✓':bx(RR)}</b></td></tr></table><div class="note">${p.direct?'':'Showing the top 50 of '+total+' doctors (use search to find others). '}Blue cells are numbers you pinned. Months follow this place's monthly profile for each product.</div></div>`;
   H+=`<div class="card">${noteBox('board:'+id,'Notes on this place','Who orders? Next order date? Any change to agree with the customer?')}</div>`;
   return H;}
 // ---------- DOCTOR TOTALS (direct + indirect)
@@ -962,7 +968,7 @@ ROUTES.docfc=function(){
   const m=M(),A=m.alloc;const F=UI.dfc;
   let H=pageHead('Doctor Forecast (boxes)','Each doctor\'s share of your forecast: direct boxes from their hospital plus indirect boxes from pharmacies and warehouses. Totals reconcile to the sheet.',`<span class="noprint"><button class="btn sec" data-go="board">Place Board</button> <button class="btn sec" data-go="fedit">Edit forecast</button></span>`);
   const tot=sum(m.docs.map(d=>d.fcT)),dir=sum(m.docs.map(d=>d.fcD)),ind=sum(m.docs.map(d=>d.fcI));
-  H+=`<div class="grid g4" style="margin-bottom:12px">${kpi(bx(A.totalBoxes),'Forecast in your sheet (boxes)')}${kpi(bx(tot),'Split across doctors',tot===A.totalBoxes-(A.totalBoxes-A.directBoxes-A.indirectBoxes)?'ok':'',`${bx(dir)} direct + ${bx(ind)} indirect`)}${kpi(bx(A.totalBoxes-tot),'Not split (products without a doctor weight)',A.totalBoxes-tot===0?'ok':'warn')}${kpi(String(m.docs.filter(d=>d.fcT>0).length),'Doctors with boxes')}</div>`;
+  H+=`<div class="grid g4" style="margin-bottom:12px">${kpi(bx(A.totalBoxes),'Forecast in your sheet (boxes)')}${kpi(bx(tot),'Split across doctors',tot===A.totalBoxes-(A.totalBoxes-A.directBoxes-A.indirectBoxes)?'ok':'',`${bx(dir)} direct + ${bx(ind)} indirect`)}${kpi(bx(A.totalBoxes-tot),'Not yet assigned to doctors',A.totalBoxes-tot===0?'ok':'warn',A.totalBoxes-tot===0?'all boxes assigned':'open a place in Place Board')}${kpi(String(m.docs.filter(d=>d.fcT>0).length),'Doctors with boxes')}</div>`;
   const groups=[['all','All doctors'],...A.groups.filter(g=>g.boxes>0).map(g=>[g.id,g.name.replace(/ \(.*/,'')]),['none','Indirect only']];
   H+=chipsRow(groups,F.g==='dallah'&&!F.set?'all':F.g,'dfc.g')+searchBox('dq2','dfc.q','Search doctor, specialty or site');
   const L=m.docs.filter(d=>(F.g==='all'||F.g==='none'&&!d.grp||d.grp===F.g)&&(!F.q||(d.n+d.sp+d.s).toLowerCase().includes(F.q.toLowerCase()))).sort((a,b)=>b.fcT-a.fcT);
@@ -984,7 +990,9 @@ const ACT={
  async copy(el){const t=document.getElementById(el.dataset.t).innerText;try{await navigator.clipboard.writeText(t);toast('Copied ✓');}catch(e){prompt('Copy',t);}},
  async copyText(el){try{await navigator.clipboard.writeText(el.dataset.t);toast('Copied ✓');}catch(e){prompt('Copy',el.dataset.t);}},
  print(){window.print();},
- resplit(el){if(READONLY)return toast('View-only');const id=el.dataset.id;let n=0;Object.keys(S.dpin).forEach(k=>{if(k.startsWith(id+'|')){delete S.dpin[k];n++;}});save();render(true);toast(n?'Pins cleared ✓':'Already automatic');},
+ manualtoggle(el){if(READONLY)return toast('View-only');const id=el.dataset.id;const p=M().alloc.places.find(x=>x.acc===id);if(!p)return;if(S.manual[id]){delete S.manual[id];toast('Auto-balance on');}else{p.prow.forEach(x=>x.parts.forEach(z=>{S.dpin[x.r.a+'|'+x.r.pn+'|'+z.d.id]=sum(z.e);}));S.manual[id]=true;toast('Manual mode — you assign every box');}save();render(true);},
+ fillrem(el){if(READONLY)return;const id=el.dataset.id;const p=M().alloc.places.find(x=>x.acc===id);if(!p)return;let n=0;p.prow.forEach(x=>{const rem=x.r.tot-sum(x.parts.map(z=>sum(z.e)));if(rem>0){let w=x.parts.map(z=>docWeight(z.d,x.r.pn));if(!(sum(w)>0))w=x.parts.map(z=>z.d.c==='A'?2:1);const a=splitInt(rem,w);x.parts.forEach((z,j)=>{S.dpin[x.r.a+'|'+x.r.pn+'|'+z.d.id]=sum(z.e)+a[j];});n+=rem;}});save();render(true);toast(n?'Filled '+n+' boxes':'Nothing left');},
+ resplit(el){if(READONLY)return toast('View-only');const id=el.dataset.id;let n=0;Object.keys(S.dpin).forEach(k=>{if(k.startsWith(id+'|')){delete S.dpin[k];n++;}});delete S.manual[id];save();render(true);toast(n?'Pins cleared ✓':'Already automatic');},
  packgo(){UI.asset={t:'pack',acc:M().acc[0].id};},
  fxacc(el){UI.fx.acc=el.dataset.id;UI.fx.prod='all';go('fedit');},
  fxfilter(el){UI.fx[el.dataset.k]=el.value;render(true);},
@@ -1004,7 +1012,7 @@ const ACT={
  pal(){openPal();},
  adopt(){READONLY=false;history.replaceState(null,'',location.pathname+location.hash);save();initDb();render(true);},
  bkexp(){$('#bk').value=JSON.stringify(S);toast('Exported ✓');},
- bkimp(){try{const o=JSON.parse($('#bk').value);if(o&&o.done&&o.log){S={done:o.done,log:o.log,notes:o.notes||{},set:{...S.set,...(o.set||{})},fc:o.fc||{},fclog:o.fclog||[],fcsnap:o.fcsnap||[],dpin:o.dpin||{}};save();render(true);toast('Imported ✓');}else toast('Invalid text');}catch(e){toast('Invalid text');}},
+ bkimp(){try{const o=JSON.parse($('#bk').value);if(o&&o.done&&o.log){S={done:o.done,log:o.log,notes:o.notes||{},set:{...S.set,...(o.set||{})},fc:o.fc||{},fclog:o.fclog||[],fcsnap:o.fcsnap||[],dpin:o.dpin||{},manual:o.manual||{}};save();render(true);toast('Imported ✓');}else toast('Invalid text');}catch(e){toast('Invalid text');}},
  async share(){const u=location.href.split('#')[0].split('?')[0]+'?s='+encState();try{if(navigator.share){await navigator.share({title:'Sales HQ',url:u});return;}}catch(e){}try{await navigator.clipboard.writeText(u);toast('Link copied ✓');}catch(e){prompt('Copy link',u);}}
 };
 document.addEventListener('click',e=>{
@@ -1020,7 +1028,7 @@ document.addEventListener('click',e=>{
 });
 document.addEventListener('change',e=>{
   const n=e.target.closest('[data-note]');if(n){if(READONLY){toast('View-only');return;}S.notes[n.dataset.note]=n.value;save();return;}
-  const dpk=e.target.closest('[data-dpk]');if(dpk){if(READONLY){toast('View-only');return;}const k=dpk.dataset.dpk;const v=dpk.value;if(v===''){delete S.dpin[k];}else S.dpin[k]=Math.max(0,Math.round(Number(v)||0));save();render(true);return;}
+  const dpk=e.target.closest('[data-dpk]');if(dpk){if(READONLY){toast('View-only');return;}const k=dpk.dataset.dpk;const v=dpk.value;const acc0=k.split('|')[0];if(v===''&&!S.manual[acc0]){delete S.dpin[k];}else S.dpin[k]=Math.max(0,Math.round(Number(v)||0));save();render(true);return;}
   const fxi=e.target.closest('[data-fxk]');if(fxi){if(READONLY){toast('View-only');return;}fxSet(fxi.dataset.fxk,+fxi.dataset.fxi,fxi.value);render(true);return;}
   const w=e.target.closest('[data-do=w]');if(w){S.set.w[w.dataset.k]=+w.value;save();render(true);return;}
   const sl=e.target.closest('select[data-do]');if(sl&&ACT[sl.dataset.do]){ACT[sl.dataset.do](sl);return;}
