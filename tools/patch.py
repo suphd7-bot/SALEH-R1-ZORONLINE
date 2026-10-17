@@ -104,6 +104,14 @@ rep("  return I;}\n// ---------- data hygiene","""  {const C=dnCalc(),w=C.sku.fi
 rep("  return A.sort((a,b)=>b.impact-a.impact);}","""  {const C=dnCalc(),w=C.sku.filter(x=>x.q4cov!=null&&x.q4cov<.5&&x.cover!=null&&x.cover<2);if(w.length)A.push({title:`Get Dallah to re-order ${w.map(x=>x.k).join(', ')}`,why:'Stock on 14 Oct covers '+w.map(x=>x.k+' '+p0(x.q4cov)).join(' · ')+' of the Q4 forecast, and under 2 months at current pace.',impact:sum(w.map(x=>Math.max(x.q4-x.stock,0)*(PRICE_BY_PN[x.k]||30))),effort:'S',owner:'You + Dallah purchasing',type:'protect',go:'dstock',due:'This week'});}
   return A.sort((a,b)=>b.impact-a.impact);}""")
 
+# 11b · headline = actual achievement (closed vs YTD target), outlook kept as secondary
+rep("""${ragWord[h.st]} · ${p0(m.o)}</button>""","""${ragWord[h.st]} · ${p0(m.T.ach)} achieved</button>""")
+rep("""${kpi(p0(m.o),'Outlook vs target',m.o>=.95?'ok':m.o>=.85?'warn':'bad',`Risk-weighted: ${p0(m.wo)}`)}</div>`;
+  H+=scenarioBar();
+  H+=changesCard(m);""","""${kpi(p0(T.ach),'Achieved · closed vs YTD target',T.ach>=.8?'ok':T.ach>=.6?'warn':'bad',`${p0(T.ytd26/T.bgFY)} of annual target · outlook ${p0(m.o)}`)}</div>`;
+  H+=scenarioBar();
+  H+=changesCard(m);""")
+
 # 11 · final text updates
 s=s.replace("Dallah stock 30 Sep","Dallah stock 14 Oct").replace("stock date is 30 Sep","stock date is 14 Oct").replace("Refresh Dallah stock when the October file arrives.","Refresh Dallah stock with the next consumption reports.")
 rep("['Dashboard YTD JULY / SEP (Dallah)','Monthly units (Dallah) 2026 vs 2025','Jan–Sep 2026','Dallah 360']]","['Dashboard YTD JULY / SEP (Dallah)','Monthly units (Dallah) 2026 vs 2025','Jan–Sep 2026','Dallah 360'],['Dallah Drug Consumption reports (Nakheel, Namar, Pharmacies)','Stock, consumed, received and outstanding per Jamjoom item, 3 places','1 Jul – 14 Oct 2026','Dallah stock, Dallah 360, Data Health']]")
