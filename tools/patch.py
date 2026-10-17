@@ -112,9 +112,18 @@ rep("""${kpi(p0(m.o),'Outlook vs target',m.o>=.95?'ok':m.o>=.85?'warn':'bad',`Ri
   H+=scenarioBar();
   H+=changesCard(m);""")
 
+# 11c · thousands separators everywhere (Saleh asked for commas, clear numbers)
+rep("const Mn=v=>{v=Number(v)||0;const r=Math.round(Math.abs(v));return (v<0?'−':'')+r;};","const NF=new Intl.NumberFormat('en-US');const Mn=v=>{v=Number(v)||0;const r=Math.round(Math.abs(v));return (v<0&&r>0?'−':'')+NF.format(r);};")
+rep("const bx=n=>String(Math.round(n||0));","const bx=n=>NF.format(Math.round(n||0));")
+rep("const fmt=n=>String(Math.round(n||0));","const fmt=n=>NF.format(Math.round(n||0));")
+
 # 11 · final text updates
 s=s.replace("Dallah stock 30 Sep","Dallah stock 14 Oct").replace("stock date is 30 Sep","stock date is 14 Oct").replace("Refresh Dallah stock when the October file arrives.","Refresh Dallah stock with the next consumption reports.")
 rep("['Dashboard YTD JULY / SEP (Dallah)','Monthly units (Dallah) 2026 vs 2025','Jan–Sep 2026','Dallah 360']]","['Dashboard YTD JULY / SEP (Dallah)','Monthly units (Dallah) 2026 vs 2025','Jan–Sep 2026','Dallah 360'],['Dallah Drug Consumption reports (Nakheel, Namar, Pharmacies)','Stock, consumed, received and outstanding per Jamjoom item, 3 places','1 Jul – 14 Oct 2026','Dallah stock, Dallah 360, Data Health']]")
+
+s=s.replace("Habib 1591000","Habib 1,591,000").replace("Objective 1591000","Objective 1,591,000").replace("objective 1591000","objective 1,591,000").replace("'10077 sales rows","'10,077 sales rows").replace("288 combinations, 91973 boxes","288 combinations, 91,973 boxes")
+
+s=s.replace("docfc:`${sum(m.docs.map(d=>d.fcT))} boxes split`","docfc:`${bx(sum(m.docs.map(d=>d.fcT)))} boxes split`")
 
 open('/home/claude/w/code.js','w').write(s)
 print('patched',len(s))

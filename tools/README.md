@@ -25,7 +25,7 @@ Live site: https://suphd7-bot.github.io/SALEH-R1-ZORONLINE/ (file `index.html`, 
 6. Copy `index_new.html` to the repo as `index.html`, commit, push to `main`, wait for Pages, check the live file contains the new code.
 
 ## Rules that hold
-- Numbers are plain: no commas, no K/M. Chat replies in Arabic; the app is English.
+- Numbers use thousands separators (1,234,567), no K/M (Saleh asked for commas on 17 Oct). Chat replies in Arabic; the app is English.
 - Forecast is in boxes; SAR only as a secondary figure.
 - Alerts have stable keys (`sup:wh:<sku>`, `fc:ratio:<account id>` …). Keep the key format so Acknowledged/Done status survives updates.
 - Before publishing, say what changed and which points need the user's confirmation.
