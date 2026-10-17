@@ -317,3 +317,56 @@ ROUTES.monthly=function(){
   H+=`<div class="card"><h3>How each monthly update works</h3>${['Send the new files in the chat with the words “update the dashboard” (the file names can stay as they are).','Claude reads each file, checks the numbers against the previous version, and flags anything that does not reconcile.','Claude rebuilds and publishes the page. Alerts re-evaluate: new ones are tagged New, cleared ones are listed, and your Acknowledged / Done notes stay with the alert.','A snapshot of the key numbers is added to the trend above, so each month is compared with the last.','You tick the checklist and send the monthly report to your manager.'].map((x,i)=>`<div class="ins"><i>${i+1}</i><div>${x}</div></div>`).join('')}</div>`;
   H+=`<div class="card"><h3>Monthly report for your manager</h3><pre id="moText" style="white-space:pre-wrap;font:13.5px/1.6 Inter,system-ui;margin:0">${esc(moText(m))}</pre><div class="chips" style="margin-top:10px"><button class="btn" data-do="mocopy">Copy report</button><button class="btn sec" data-do="alcopy">Copy alerts digest</button></div></div>`;
   return H;};
+
+// =====================================================================
+// CONSUMPTION · my drugs · day / week / month
+// =====================================================================
+const CSK=[
+ ['Zoron 4 Tab',/^ZORON 4 MG TAB/i,/^zoron 4 mg\/tablet/i,1,"ZORON 4Mg Tablet 10's"],
+ ['Zoron 4 Inj',/^ZORON 4 MG\/2ML/i,/^zoron 4 mg\/2 ml/i,5,null],
+ ['Zoron 8 Tab',/^ZORON 8 MG TAB/i,/^zoron 8 mg\/tablet/i,1,"ZORON 8Mg Tablet 10's"],
+ ['Zoron 8 Inj',/^ZORON 8 MG\/4ML/i,/^zoron 8 mg\/4 ml/i,5,"ZORON Injection 8Mg/2ml 5's"],
+ ['Meva SR 200',/^MEVA 200/i,/^meva sr 200/i,1,'MEVA 200 MG F.C. TABS X 30'],
+ ['Meva 135',/^MEVA 135/i,/^meva 135/i,1,'MEVA 135 MG F.C. TABS X 30'],
+ ['Maxim 5s',/^MAXIM 400 MG TAB 5/i,/^maxim 400 mg tablet, 5/i,1,'MAXIM 400MG TAB 1X5'],
+ ['Maxim 7s',/^MAXIM 400 MG TAB 7/i,/^maxim 400 mg tablet, 7/i,1,'MAXIM 400MG TAB 1x7']];
+const CSD={day:30.4,week:30.4/7,month:1};           // months → period divisor
+const CSN={day:'per day',week:'per week',month:'per month'};
+const csq=(acc,pn)=>sum(FX.rows.filter(r=>acc.includes(r.a)&&r.pn===pn).map(r=>sum(r.e||fxEff(r))));
+function csCalc(m){
+  const dc=dnCalc(),D=['105301310003','435040'],H=['105301120009'],all=[...new Set(FX.rows.map(r=>r.a))];
+  return CSK.map(k=>{
+    const pn=k[0],sk=dc.sku.find(s=>s.k===pn),hp=HP.find(x=>k[1].test(x.name)),an=D2.annual.prods.find(p=>k[2].test(p.n)),jj=k[4]&&JJ.map[k[4]]?JJI[JJ.map[k[4]]]:null,f=k[3];
+    const dm26=an?an.m26.map(v=>v/f):[],dm25=an?an.m25.map(v=>v/f):[],hm26=hp?hp.um26:[],hm25=hp?hp.um25:[];
+    const tr=a=>a.length>=9?{l3:sum(a.slice(6,9))/3,p3:sum(a.slice(3,6))/3}:null;
+    return {pn,dm26,dm25,hm26,hm25,dTr:tr(dm26),hTr:tr(hm26),dRate:sk?sk.rate:0,hRate:hm26.length?sum(hm26.slice(6,9))/3:0,jRate:jj?jj.s30:0,jj,
+      q4d:csq(D,pn)/3,q4h:csq(H,pn)/3,q4a:csq(all,pn)/3,dStock:sk?sk.stock:null,dCover:sk?sk.cover:null,hasH:!!hp,hasJ:!!jj};});}
+const csV=v=>v==null||!isFinite(v)?'—':v>=100?fmt(v):String(Math.round(v*10)/10);
+const csR=(a,b)=>b>0?a/b:null;
+const csPill=r=>r==null?'':r>1.5?pill('Forecast '+r.toFixed(1)+'×','warn'):r<.7?pill('Forecast '+r.toFixed(1)+'×','info'):pill('In line','ok');
+const csArrow=t=>!t||t.p3<=0?'—':(()=>{const y=t.l3/t.p3-1;return `<span class="${y<-.1?'dn':y>.1?'up':''}">${y>.1?'▲':y<-.1?'▼':'►'} ${pS(y)}</span>`;})();
+UI.cs={p:'month',d:'Zoron 4 Tab'};
+ROUTES.consume=function(){
+  const m=M(),F=UI.cs,dv=CSD[F.p],nm=CSN[F.p],C=csCalc(m),T=m.T,mode=F.p;
+  const dl=Math.max(1,Math.ceil((new Date('2026-12-31T23:59:59')-new Date())/864e5)),per=mode==='day'?1:mode==='week'?7:30.4;
+  const pace=T.ytd26/273,need=T.gap/dl,q4=T.fcQ4/92;
+  let H=pageHead('Consumption · my drugs','How much each of your 8 drugs is really consumed at Dallah and Al Habib and sold by Jamjoom, by day, week and month, against what the Q4 forecast needs.');
+  H+=chipsRow([['day','Per day'],['week','Per week'],['month','Per month']],F.p,'cs.p');
+  H+=`<div class="card"><h3>Your sales rhythm (SAR ${nm})</h3><div class="grid g4" style="margin-bottom:8px">${kpi(fmt(pace*per),'Average so far','','Jan–Sep, 273 days')}${kpi(fmt(need*per),'Needed to reach the annual target',need>pace*2?'bad':'warn',dl+' days left in the year')}${kpi(fmt(q4*per),'Q4 forecast gives','','Oct–Dec at 100%')}${kpi((need/Math.max(pace,1)).toFixed(1)+'×','Pace needed vs pace so far',need/Math.max(pace,1)>2?'bad':'warn','')}</div><div class="note">Average so far = YTD sales ÷ 273 days. Needed = gap to the annual target ÷ days left. Days and weeks are averages of the monthly numbers: the files hold monthly data, not daily.</div></div>`;
+  H+=`<div class="card scroll"><h3>What each channel consumes and what the forecast needs (boxes ${nm})</h3><table class="t"><tr><th class="tl">Drug</th><th>Dallah consumes</th><th>Dallah forecast</th><th>Forecast vs consumption</th><th>Habib sells out</th><th>Habib forecast</th><th>Forecast vs sell-out</th><th>Jamjoom file sales (30 d)</th><th>Your whole Q4 forecast</th></tr>`+C.map(c=>{const rd=csR(c.q4d,c.dRate),rh=csR(c.q4h,c.hRate);return `<tr class="row" data-do="ui" data-p="cs.d" data-v="${esc(c.pn)}" style="cursor:pointer"><td class="tl"><b>${c.pn}</b></td><td>${csV(c.dRate/dv)}</td><td>${csV(c.q4d/dv)}</td><td>${csPill(rd)}</td><td>${c.hasH?csV(c.hRate/dv):'—'}</td><td>${c.hasH?csV(c.q4h/dv):'—'}</td><td>${c.hasH?csPill(rh):''}</td><td>${c.hasJ?csV(c.jRate/dv):'—'}</td><td>${csV(c.q4a/dv)}</td></tr>`;}).join('')+`</table><div class="note">Dallah consumes = average since 1 July (3 places, to 14 Oct). Habib = average July–September sell-out. Jamjoom sold = last 30 days of sales in the Jamjoom stock file; its scope is not confirmed (Dallah alone consumes more than it shows for some drugs), so use it as a trend, not as total sales. Forecast vs consumption above 1.5× means the plan asks for more than the account uses, so it builds stock; below 0.7× means the plan is lighter than real use. Tap a row for the monthly picture.</div></div>`;
+  const c=C.find(x=>x.pn===F.d)||C[0];
+  H+=chipsRow(C.map(x=>[x.pn,x.pn]),c.pn,'cs.d');
+  const pad=a=>[...a,...Array(Math.max(0,12-a.length)).fill(0)].slice(0,12);
+  const dd=c.dRate>0?c.dStock/(c.dRate/30.4):null,jd=c.hasJ?jjDays(c.jj):null;
+  const read=[];
+  read.push(`Dallah uses about <b>${csV(c.dRate/30.4)}</b> boxes a day (${csV(c.dRate/(30.4/7))} a week, ${csV(c.dRate)} a month). Your Q4 forecast there is ${csV(c.q4d/30.4)} a day${csR(c.q4d,c.dRate)?`, which is ${csR(c.q4d,c.dRate).toFixed(1)}× the real use`:''}.`);
+  if(dd!=null)read.push(`Stock at Dallah is ${fmt(c.dStock)} boxes, which lasts <b>${fmt(dd)} days</b> at the current pace${dd<45?' — re-order now':dd>365?' — far more than needed':''}.`);
+  if(c.hasH)read.push(`Habib sells out ${csV(c.hRate/30.4)} a day; the plan for Habib is ${csV(c.q4h/30.4)} a day (${csR(c.q4h,c.hRate)?csR(c.q4h,c.hRate).toFixed(1)+'×':'—'}).`);
+  if(c.hasJ)read.push(`Jamjoom sold ${fmt(c.jRate)} boxes in the last 30 days (${csV(c.jRate/30)} a day) with ${fmt(c.jj.tot)} boxes in stock: ${jd!=null?fmt(jd)+' days':'—'} of cover.`);else read.push('This item is not in the Jamjoom stock file.');
+  const tr=c.dTr&&c.dTr.p3>0?`Dallah last 3 months ${csArrow(c.dTr)} vs the 3 before`:'';
+  H+=`<div class="card"><h3>${c.pn} · the picture</h3>${read.map(x=>`<div class="ins"><i>•</i><div>${x}</div></div>`).join('')}${tr?`<div class="note">${tr}${c.hTr?` · Habib ${csArrow(c.hTr)}`:''}</div>`:''}</div>`;
+  H+=`<div class="col2"><div class="card"><h3>Dallah consumption by month (boxes)</h3>${c.dm26.length?svgMonthly(pad(c.dm26),pad(c.dm25),null,9):'<div class="note">No data.</div>'}${legend()}<div class="note">2025 line stops in July: the file holds 7 months of 2025.</div></div><div class="card"><h3>Habib sell-out by month (units)</h3>${c.hasH?svgMonthly(pad(c.hm26),pad(c.hm25),null,9):'<div class="note">Not sold at Habib.</div>'}${legend()}</div></div>`;
+  const mn=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep'];
+  H+=`<div class="card scroll"><h3>Month by month · 2026</h3><table class="t"><tr><th class="tl">${c.pn}</th>${mn.map(x=>`<th>${x}</th>`).join('')}<th>Last 3 vs before</th></tr><tr><td class="tl">Dallah boxes</td>${mn.map((x,i)=>`<td>${c.dm26[i]!=null?csV(c.dm26[i]):'—'}</td>`).join('')}<td>${csArrow(c.dTr)}</td></tr><tr><td class="tl">Dallah 2025</td>${mn.map((x,i)=>`<td>${c.dm25[i]!=null?csV(c.dm25[i]):'—'}</td>`).join('')}<td></td></tr><tr><td class="tl">Habib units</td>${mn.map((x,i)=>`<td>${c.hm26[i]!=null?csV(c.hm26[i]):'—'}</td>`).join('')}<td>${csArrow(c.hTr)}</td></tr><tr><td class="tl">Habib 2025</td>${mn.map((x,i)=>`<td>${c.hm25[i]!=null?csV(c.hm25[i]):'—'}</td>`).join('')}<td></td></tr></table></div>`;
+  H+=`<div class="card"><h3>Consumption plan</h3>${noteBox('plan:CONS:act','What I will do about consumption (who / what / when)','1) Ask Dallah to re-order Zoron 4  2) Hold Maxim and Meva SR orders  3) …')}</div>`;
+  return H;};
