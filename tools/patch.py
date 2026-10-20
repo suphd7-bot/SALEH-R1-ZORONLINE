@@ -97,7 +97,7 @@ rep("""<button class="hs" data-go="home" title="Position health">""","""<button 
 rep("  H+=changesCard(m);","  H+=changesCard(m);H+=alertsCard(m);")
 
 # 10 · new modules before boot
-rep("// ---------- boot",open('/home/claude/w/mod_new.js').read()+"\n// ---------- boot")
+rep("// ---------- boot",open('/home/claude/w/mod_new.js').read()+open('/home/claude/w/mod_djm.js').read()+"\n// ---------- boot")
 
 rep("  return I;}\n// ---------- data hygiene","""  {const C=dnCalc(),w=C.sku.filter(x=>x.q4cov!=null&&x.q4cov<.5&&x.cover!=null&&x.cover<2);if(w.length)I.push({theme:'Dallah supply',sev:'bad',head:`Dallah holds under half of the Q4 forecast for ${w.length} of your SKUs`,ev:w.map(x=>x.k+' stock '+bx(x.stock)+' vs Q4 '+bx(x.q4)+' ('+p0(x.q4cov)+')').join(' · ')+'. Stock as of 14 Oct.',so:'At the current pace these items run out inside Q4 unless Dallah re-orders, and the forecast boxes will not ship.',act:'Ask Dallah purchasing to place orders now and agree the delivery calendar by month.',go:'dstock',conf:'High'});}
   return I;}\n// ---------- data hygiene""")
