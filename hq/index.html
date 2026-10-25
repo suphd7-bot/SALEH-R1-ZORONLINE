@@ -13,6 +13,7 @@ nav a{padding:8px 12px;border-radius:10px;color:var(--mut);text-decoration:none;
 nav a:hover{background:var(--brand2);color:var(--brand)}nav a.on{background:var(--brand);color:#fff}
 nav a.me.on{background:#b7791f}
 .askc{padding:7px 12px;border-radius:10px;border:1.5px solid var(--brand);color:var(--brand);text-decoration:none;font-weight:600;white-space:nowrap}.askc:hover{background:var(--brand2)}
+table.t tr.cf td{padding:4px 6px;border-bottom:1px solid var(--line);background:var(--card)}.cfs{width:100%;min-width:92px;max-width:220px;font:inherit;font-size:12px;padding:4px 6px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink)}.cfs.on{border-color:var(--brand);background:var(--brand2);font-weight:700}
 .badge{display:inline-block;padding:2px 8px;border-radius:99px;font-size:11px;font-weight:700;background:var(--brand2);color:var(--brand);white-space:nowrap}
 .badge.warn{background:var(--warnbg);color:var(--warn)}.badge.ok{background:var(--okbg);color:var(--ok)}.badge.bad{background:var(--badbg);color:var(--bad)}
 main{max-width:1280px;margin:0 auto;padding:16px 16px 80px}
@@ -312,8 +313,8 @@ const TBL = {};
 
 /* ---------- small html helpers ---------- */
 const pill = (t, k) => `<span class="pill ${k || ''}">${esc(t)}</span>`;
-const achK = a => a == null ? '' : a >= 1 ? 'ok' : a >= .8 ? 'warn' : 'bad';
-const achCell = a => a == null ? '<span class="mut">—</span>' : `<b class="${a >= 1 ? 'up' : a >= .8 ? 'warn' : 'dn'}">${pc(a)}</b><span class="bar"><i style="width:${Math.min(100, a * 100)}%;background:var(--${a >= 1 ? 'ok' : a >= .8 ? 'warn' : 'bad'})"></i></span>`;
+const achK = a => a == null ? '' : a >= .95 ? 'ok' : a >= .8 ? 'warn' : 'bad';
+const achCell = a => a == null ? '<span class="mut">—</span>' : `<b class="${a >= .95 ? 'up' : a >= .8 ? 'warn' : 'dn'}">${pc(a)}</b><span class="bar"><i style="width:${Math.min(100, a * 100)}%;background:var(--${a >= .95 ? 'ok' : a >= .8 ? 'warn' : 'bad'})"></i></span>`;
 const yoyCell = y => y == null ? '<span class="mut">—</span>' : `<span class="${y >= 0 ? 'up' : 'dn'}">${pcs(y)}</span>`;
 const kpi = (v, l, sub, cls) => `<div class="kpi ${cls || ''}"><span>${l}</span><b>${v}</b>${sub ? `<i>${sub}</i>` : ''}</div>`;
 function chips(list, cur, path, mineKey) {
@@ -328,16 +329,23 @@ function table(id, cols, rows, opt) {
   opt = opt || {}; const st = UI.sort[id] || (opt.sort ? { k: opt.sort, d: opt.dir || -1 } : null);
   let rs = rows.slice();
   const norm = rs.filter(r => !r._tot && !r._grp), tots = rs.filter(r => r._tot);
+  /* column filters (names) + RAG status filter */
+  UI.cf = UI.cf || {}; const cf = UI.cf[id] || (UI.cf[id] = {});
+  const cfMeta = cols.map(c => { const g = r => (c.v ? c.v(r) : r[c.k]); const vs = norm.map(g); const strs = vs.filter(x => typeof x === 'string' && x !== ''); const nums = vs.filter(x => typeof x === 'number' && isFinite(x)); if (strs.length && strs.length >= nums.length) { const u = [...new Set(strs.map(s => s.replace(/<[^>]+>/g, '').trim()))].filter(Boolean).sort((a, b) => a.localeCompare(b)); return u.length > 1 && u.length <= 500 ? { t: 'cat', g, u } : null; } if (nums.length && /achiev|ach %|vs budget|vs bud|of budget|of target|vs target|forecast vs/i.test(c.l)) return { t: 'rag', g }; return null; });
+  const ragOf = x => (x == null || x !== x) ? '' : (x > 5 ? x / 100 : x) >= .95 ? 'G' : (x > 5 ? x / 100 : x) >= .8 ? 'A' : 'R';
+  if (Object.keys(cf).length) { const keep = norm.filter(r => cols.every((c, j) => { const f = cf[c.k], m = cfMeta[j]; if (!f || !m) return true; const x = m.g(r); if (m.t === 'cat') return String(x == null ? '' : x).replace(/<[^>]+>/g, '').trim() === f; return ragOf(typeof x === 'number' ? x : null) === f; })); norm.length = 0; keep.forEach(x => norm.push(x)); }
+  const cfRow = cfMeta.some(Boolean) ? '<tr class="cf">' + cols.map((c, j) => { const m = cfMeta[j]; if (!m) return '<td></td>'; const cur = cf[c.k] || ''; const opts = m.t === 'cat' ? m.u.map(u => '<option' + (u === cur ? ' selected' : '') + ' value="' + esc(u) + '">' + esc(u) + '</option>').join('') : [['R', '🔴 Red  <80%'], ['A', '🟠 Amber 80–95%'], ['G', '🟢 Green ≥95%']].map(o => '<option' + (o[0] === cur ? ' selected' : '') + ' value="' + o[0] + '">' + o[1] + '</option>').join(''); return '<td class="' + (c.tl ? 'tl' : '') + '"><select class="cfs' + (cur ? ' on' : '') + '" data-cf="' + id + '|' + esc(c.k) + '" aria-label="Filter ' + esc(c.l) + '"><option value="">' + (m.t === 'cat' ? 'All' : 'All status') + '</option>' + opts + '</select></td>'; }).join('') + '</tr>' : '';
   if (st) { const c = cols.find(c => c.k === st.k); if (c) { const f = c.v || (r => r[c.k]); norm.sort((a, b) => { const x = f(a), y = f(b); const nx = x == null || x !== x, ny = y == null || y !== y; if (nx && ny) return 0; if (nx) return 1; if (ny) return -1; return (typeof x === 'string' ? x.localeCompare(y) : x - y) * st.d; }); } }
   if (UI.mineFirst && !opt.noMine) norm.sort((a, b) => (b.mine ? 1 : 0) - (a.mine ? 1 : 0));
   const lim = opt.limit || 400; const shown = norm.slice(0, lim);
   TBL[id] = { cols, rows: norm.concat(tots), title: opt.title || id };
-  let h = `<div class="scroll"><table class="t" data-t="${id}"><tr>${cols.map(c => `<th class="${c.tl ? 'tl' : ''}" data-do="sort" data-t="${id}" data-k="${c.k}">${esc(c.l)}${st && st.k === c.k ? `<span class="ar"> ${st.d < 0 ? '▼' : '▲'}</span>` : ''}</th>`).join('')}</tr>`;
+  let h = `<div class="scroll"><table class="t" data-t="${id}"><tr>${cols.map(c => `<th class="${c.tl ? 'tl' : ''}" data-do="sort" data-t="${id}" data-k="${c.k}">${esc(c.l)}${st && st.k === c.k ? `<span class="ar"> ${st.d < 0 ? '▼' : '▲'}</span>` : ''}</th>`).join('')}</tr>${cfRow}`;
   shown.forEach(r => { h += `<tr class="${r.mine ? 'mine' : ''} ${opt.click ? 'row' : ''}" ${opt.click && r._k != null ? `data-do="${opt.click}" data-k="${esc(r._k)}" style="cursor:pointer"` : ''}>${cols.map(c => `<td class="${c.tl ? 'tl' : ''} ${c.w ? 'wrap' : ''}">${c.h ? c.h(r) : esc(r[c.k])}</td>`).join('')}</tr>`; });
   tots.forEach(r => { h += `<tr class="tot">${cols.map(c => `<td class="${c.tl ? 'tl' : ''}">${c.h ? c.h(r) : esc(r[c.k])}</td>`).join('')}</tr>`; });
   h += `</table></div>`;
   if (norm.length > lim) h += `<div class="note">Showing the first ${lim} of ${norm.length} rows. Use the filters or export to see all.</div>`;
   if (!norm.length) h += `<div class="empty">No rows for this filter</div>`;
+  if (Object.keys(cf).length) h += `<div class="note">Column filters on: ${Object.keys(cf).length} · <button class="btn sec sm" data-do="cfclear" data-t="${id}">Clear column filters</button></div>`;
   h += `<div class="noprint" style="margin-top:8px"><button class="btn sec sm" data-do="csv" data-t="${id}">Export CSV</button></div>`;
   return h;
 }
@@ -791,7 +799,7 @@ document.addEventListener('click', e => {
   const a = el.dataset.do, k = el.dataset.k;
   if (a === 'set') { setPath(el.dataset.p, el.dataset.v); render(); }
   else if (a === 'sort') { const id = el.dataset.t, c = el.dataset.k; const s = UI.sort[id]; UI.sort[id] = s && s.k === c ? { k: c, d: -s.d } : { k: c, d: -1 }; render(); }
-  else if (a === 'csv') csvOf(el.dataset.t);
+  else if (a === 'csv') csvOf(el.dataset.t); else if (a === 'cfclear') { if (UI.cf) delete UI.cf[el.dataset.t]; render(); }
   else if (a === 'minetog') { UI.mineFirst = !UI.mineFirst; render(); }
   else if (a === 'drug') drugModal(k); else if (a === 'acct') acctModal(k); else if (a === 'fcacct') fcAcctModal(k);
   else if (a === 'docplace') { UI.doc.h = UI.doc.h === k ? 'all' : k; render(); }
@@ -804,6 +812,7 @@ document.addEventListener('click', e => {
   else if (a === 'reset') { if (confirm('Remove the data saved in this browser and go back to the published version?')) { try { localStorage.removeItem(STORE); } catch (e) { } loadDB(); render(); toast('Back to published data'); } }
 });
 document.addEventListener('input', e => { const p = e.target.dataset && e.target.dataset.in; if (p) { setPath(p, e.target.value); clearTimeout(window.__t); window.__t = setTimeout(render, 180); } });
+document.addEventListener('change', e => { const s = e.target.dataset && e.target.dataset.cf; if (!s) return; const i = s.indexOf('|'), id = s.slice(0, i), k = s.slice(i + 1); UI.cf = UI.cf || {}; UI.cf[id] = UI.cf[id] || {}; if (e.target.value) UI.cf[id][k] = e.target.value; else delete UI.cf[id][k]; render(); });
 window.addEventListener('hashchange', () => { render(); window.scrollTo(0, 0); });
 loadCfg(); loadDB(); setTitle(); render();
 window.__hq = { PAGES, get DB() { return DB; } };
