@@ -1,0 +1,21 @@
+const XLSX=require('xlsx'),fs=require('fs'),C=require('./core.js');
+const NEW='/root/.claude/uploads/45e83dbc-9fae-5d38-8f18-61a30db88f6f/';
+const g=p=>fs.readdirSync(NEW).filter(f=>f.includes(p)).map(f=>NEW+f)[0];
+const rd=f=>XLSX.read(fs.readFileSync(f),{type:'buffer',cellDates:true});
+const out={};
+let wb=rd(g('c7594402')),d=C.detect(XLSX,wb);console.log(d);
+const s=d.find(x=>x.kind==='sales'),t=d.find(x=>x.kind==='targets');
+out.sales=C.buildSales(C.table(XLSX,wb,s),C.table(XLSX,wb,t));
+console.log('facts',out.sales.f.length,'bud',out.sales.bud.length,'ytd',out.sales.ytd,out.sales.dims.reps.map(r=>r.n+':'+r.line),out.sales.dims.lines);
+const fw=rd('/root/.claude/uploads/45e83dbc-9fae-5d38-8f18-61a30db88f6f/../../../../mnt/user-data/attachments/45e83dbc-9fae-5d38-8f18-61a30db88f6f/'+fs.readdirSync('/mnt/user-data/attachments/45e83dbc-9fae-5d38-8f18-61a30db88f6f/').find(f=>/Forecast/.test(f)));
+const fd=C.detect(XLSX,fw);console.log(fd);
+out.fc=C.buildForecast(C.table(XLSX,fw,fd.find(x=>x.kind==='forecast')));
+console.log('fc',out.fc.f.length,out.fc.fb.length,Object.keys(out.fc.pn).length,Object.keys(out.fc.cn).length);
+const tw=rd('/mnt/user-data/uploads/'+fs.readdirSync('/mnt/user-data/uploads').find(f=>/HQ_Tracker/.test(f)));
+const td=C.detect(XLSX,tw);console.log(td);out.docs=C.buildTracker(C.table(XLSX,tw,td.find(x=>x.kind==='tracker')));console.log('docs',out.docs.length);
+const jw=rd(g('6a84f533'));const jd=C.detect(XLSX,jw);console.log(jd);out.jj=C.buildJJ(C.table(XLSX,jw,jd[0]));console.log('jj',out.jj.length);
+fs.writeFileSync('db_core.json',JSON.stringify(out));console.log(fs.statSync('db_core.json').size);
+
+const jj=out.jj;const tot={};out.fc.f.forEach(r=>{tot[r[1]]=(tot[r[1]]||0)+r[3].reduce((a,b)=>a+b,0)});
+const nm=Object.assign({},out.fc.pn);out.sales.dims.prods.forEach(p=>nm[p.id]=nm[p.id]||p.n);
+let un=0;Object.keys(tot).sort((a,b)=>tot[b]-tot[a]).forEach(pid=>{const m=C.matchJJ(nm[pid],jj);if(tot[pid]>0)console.log(String(tot[pid]).padStart(7),nm[pid].padEnd(42),m?(m.exact?'= ':'≈ ')+m.it.d+' ['+m.it.tot+']':'--- none');});
