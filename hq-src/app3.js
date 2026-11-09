@@ -200,7 +200,7 @@ PAGES.ideas = function () {
 };
 
 /* ---------- ROUTER, EVENTS, BOOT ---------- */
-const NAV = [['home', 'Overview'], ['mine', '⭐ My line'], ['lines', 'Lines'], ['areas', 'Areas'], ['forecast', 'Forecast'], ['doctors', 'Doctors'], ['stock', 'Stock'], ['update', 'Update'], ['ideas', 'Ideas']];
+const NAV = [['home', 'Overview'], ['mine', '⭐ My line'], ['lines', 'Lines'], ['areas', 'Areas'], ['review', 'Sales Review'], ['followup', 'Follow-up'], ['forecast', 'Forecast'], ['doctors', 'Doctors'], ['stock', 'Stock'], ['update', 'Update'], ['ideas', 'Ideas']];
 function route() { return (location.hash.replace(/^#\/?/, '').split('/')[0]) || 'home'; }
 function render() {
   const r = route(), pg = PAGES[r] || PAGES.home; const y = window.scrollY; const fo = document.activeElement && document.activeElement.dataset ? document.activeElement.dataset.in : null; const caret = fo ? document.activeElement.selectionStart : 0;
