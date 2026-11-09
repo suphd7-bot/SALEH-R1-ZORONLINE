@@ -4,7 +4,7 @@ const fm=fs.readFileSync('/home/claude/w/mod_fst.js','utf8').match(/const FST=(\
 const fstat=JSON.parse(fm[1]).map(o=>({id:o.id,st:o.st,amt:o.amt,txt:o.txt}));
 const now=Date.now();
 const DB={meta:{updated:now,built:new Date(now).toISOString(),src:{
- sales:{file:'25 VS 26 YTD - SEP - R1 - Non Promoted.xlsx',at:now,label:'to Sep'},forecast:{file:'Q4 - 26 - Forecast - R1 - Per Item.xlsx',at:now,label:'Q4'},
+ sales:{file:'25 VS 26 YTD - OCT - R1 - Non Promoted - Updated.xlsx',at:now,label:'to Oct'},forecast:{file:'NOV - DEC - 26 - Forecast - R1 - Per Item.xlsx',at:now,label:'Nov–Dec'},
  tracker:{file:'HQ_Tracker_Sun-Wed_120.xlsx',at:now,label:''},jjstock:{file:'Jamjoom_4-10-2026.xlsx',at:now,label:'4 Oct 2026'},fstatus:{file:'Q4 - 26 - Forecast - R1 - Per Item (1).xlsx',at:now,label:'25 Oct'}}},
  sales:core.sales,fc:core.fc,docs:core.docs,jj:core.jj,fstat,habib:leg.habib,dalM:leg.dalM,dal:leg.dal,dcons:leg.dcons,zah:leg.zah,hist:[]};
 fs.writeFileSync('db.json',JSON.stringify(DB));

@@ -1,0 +1,15 @@
+const XLSX=require('xlsx'),fs=require('fs'),C=require('./core.js');
+const A='/mnt/user-data/attachments/45e83dbc-9fae-5d38-8f18-61a30db88f6f/';
+const g=p=>A+fs.readdirSync(A).find(f=>f.includes(p));
+const rd=f=>XLSX.read(fs.readFileSync(f),{type:'buffer',cellDates:true});
+const out=JSON.parse(fs.readFileSync('db_core_prev.json'));
+let wb=rd(g('dd7f7959')),d=C.detect(XLSX,wb);console.log(JSON.stringify(d));
+const s=d.find(x=>x.kind==='sales'),t=d.find(x=>x.kind==='targets');
+out.sales=C.buildSales(C.table(XLSX,wb,s),C.table(XLSX,wb,t));
+console.log('facts',out.sales.f.length,'bud',out.sales.bud.length,'ytd',out.sales.ytd);
+const fw=rd(g('15608909')),fd=C.detect(XLSX,fw);console.log(JSON.stringify(fd));
+out.fc=C.buildForecast(C.table(XLSX,fw,fd.find(x=>x.kind==='forecast')));
+console.log('fc',out.fc.f.length,out.fc.fb.length,Object.keys(out.fc.cn).length);
+fs.writeFileSync('db_core.json',JSON.stringify(out));
+const T=(a)=>a.reduce((x,y)=>x+y,0);
+const mine=out.sales.f;let a=Array(12).fill(0),b=Array(12).fill(0);mine.forEach(r=>{r[4].forEach((v,i)=>a[i]+=v);r[5].forEach((v,i)=>b[i]+=v)});console.log('2026',a.map(Math.round).join(','));console.log('2025',b.map(Math.round).join(','));
