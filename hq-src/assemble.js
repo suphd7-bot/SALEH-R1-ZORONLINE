@@ -6,7 +6,7 @@ const now=Date.now();
 const DB={meta:{updated:now,built:new Date(now).toISOString(),src:{
  sales:{file:'25 VS 26 YTD - SEP - R1 - Non Promoted.xlsx',at:now,label:'to Sep'},forecast:{file:'Q4 - 26 - Forecast - R1 - Per Item.xlsx',at:now,label:'Q4'},
  tracker:{file:'HQ_Tracker_Sun-Wed_120.xlsx',at:now,label:''},jjstock:{file:'Jamjoom_4-10-2026.xlsx',at:now,label:'4 Oct 2026'},fstatus:{file:'Q4 - 26 - Forecast - R1 - Per Item (1).xlsx',at:now,label:'25 Oct'}}},
- sales:core.sales,fc:core.fc,docs:core.docs,jj:core.jj,fstat,habib:leg.habib,dalM:leg.dalM,dal:leg.dal,dcons:leg.dcons,hist:[]};
+ sales:core.sales,fc:core.fc,docs:core.docs,jj:core.jj,fstat,habib:leg.habib,dalM:leg.dalM,dal:leg.dal,dcons:leg.dcons,zah:leg.zah,hist:[]};
 fs.writeFileSync('db.json',JSON.stringify(DB));
 const esc=s=>s.replace(/<\/script/gi,'<\\/script');
 const lib=esc(fs.readFileSync('node_modules/xlsx/dist/xlsx.full.min.js','utf8'));
